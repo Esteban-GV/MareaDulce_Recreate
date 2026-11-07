@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: recreate-app-network-policy
+  namespace: recreate-lab
+  labels:
+    app.kubernetes.io/name: recreate-app
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: recreate-app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # 1. Tráfico HTTP externo entrante hacia la aplicación
+    - from:
+        - namespaceSelector: {} # Ingress controller o cualquier namespace interno
+      ports:
+        - protocol: TCP
+          port: 8000
+    # 2. Recolección de métricas por Prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Permitir resolución DNS del clúster
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+

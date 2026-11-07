@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: recreate-app-pvc
+  namespace: recreate-lab
+  labels:
+    app.kubernetes.io/name: recreate-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+

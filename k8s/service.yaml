@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: recreate-app-service
+  namespace: recreate-lab
+  labels:
+    app.kubernetes.io/name: recreate-app
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: recreate-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+
