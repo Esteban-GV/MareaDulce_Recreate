@@ -1,101 +1,89 @@
+# Apuntes y Requerimientos Consolidados: Entrega Plataformas II
+
 **Integrantes:**
-Esteban Guarin Valencia
-Juan Jose Arias Gallego
+- Esteban Guarín Valencia
+- Juan José Arias Gallego
 
 ---
-Estrategias de Despliegue con kubernetes
 
-Exponer
-- Aplicacion en vivo
-- -5 minutos.
-	
-Chequear Terraform con Kubernetes
-Instalar Lens
+## 1. Alcance General de la Entrega
+- Realizar un despliegue en Kubernetes implementando la estrategia **Recreate**.
+- Integrar una **Observabilidad Completa** con las métricas correctas, logs, trazas, eventos y alertas.
+- Sustentación en vivo: Demostración técnica y de negocio de ~5 minutos.
 
-Metricas
-- Recursos
-- Estado
-- Rendimiento
-- Metricas de Negocio (Impacto a los usuarios).
+---
 
-Importancia de Metricas en Kubernetes
-Las metricas deben cumplir con
-- Especificas
+## 2. Subtareas y Componentes Técnicos Mandatorios
+
+1. **Montaje de la Aplicación en el Clúster de Kubernetes:**
+   - Aplicación base desacoplada y funcional.
+   - Definición de políticas de red (**Network Policies**) para control estricto de tráfico Ingress/Egress.
+   - Persistencia de datos mediante **PersistentVolumeClaim (PVC)** y StorageClass correspondiente.
+   - Estrategia de despliegue configurada explícitamente en `spec.strategy.type: Recreate`.
+
+2. **Autoescalado Horizontal de Pods (HPA):**
+   - Reglas de HPA concisas y sustentables basadas en métricas de consumo (CPU/Memoria/Custom Metrics).
+   - Justificación técnica basada en el perfil de uso de la aplicación y picos estacionales/fechas clave de negocio.
+
+3. **Gestión de Costos con Kubecost:**
+   - Implementación de **Kubecost** en el clúster.
+   - Visualización y correlación de consumo de recursos frente a costos monetarios estimados mediante su dashboard respectivo.
+
+4. **Pila de Centralización de Logs (ELK / EFK):**
+   - Recopilación, procesamiento, almacenamiento y visualización de grandes volúmenes de registros en tiempo real.
+   - Correlación de logs de acceso y errores con el ciclo de terminación y recreación de Pods.
+
+5. **Seguridad y Control de Acceso (Autenticación Avanzada / SSO):**
+   - Implementación de inicio de sesión único (**SSO**) o mecanismo de autenticación robusto con validación integral (multifactor o tokens verificados), superando esquemas básicos de usuario y contraseña simple.
+
+6. **Observabilidad Integral en Dashboards:**
+   - Consolidación unificada de los pilares de observabilidad: **Métricas, Logs, Traces, Eventos y Alertas**.
+   - Definición de reglas de alerta operativas (ej. umbral de saturación >80%, incremento de latencia, tasa de error 5xx durante la ventana de downtime).
+
+7. **Orientación y Presentación para el Negocio:**
+   - Estructuración del dashboard para responder a expectativas del negocio (evaluación de impacto al cliente final, determinación del modelo B2B o B2C).
+   - Medición cuantitativa del tiempo de interrupción del servicio (*downtime*) y afectación transaccional.
+
+8. **Diapositivas y Caso de Negocio:**
+   - Elaboración de material de apoyo visual con la formulación integral del caso de negocio y justificación técnica.
+
+9. **Documentación Técnica y Guion de Presentación:**
+   - Redacción de la documentación formal del proyecto.
+   - Preparación del guion sincronizado para la sustentación oral en vivo.
+
+---
+
+## 3. Marco de Métricas y Modelos de Telemetría
+
+### Modelos de Monitoreo
+- **Modelo RED:**
+  - *Rate:* Tasa de peticiones atendidas por segundo.
+  - *Errors:* Tasa de solicitudes fallidas (502, 503, caídas de conexión durante Recreate).
+  - *Duration:* Latencia en el procesamiento de transacciones.
+- **Modelo USE:**
+  - *Utilization:* Porcentaje de uso de CPU, memoria y almacenamiento.
+  - *Saturation:* Estrangulamiento de cómputo y encolamiento.
+  - *Errors:* Fallos a nivel de red, almacenamiento o nodos.
+
+### Pirámide de Observabilidad en Kubernetes
+1. **Recursos de Infraestructura:** Consumo físico/virtual de nodos, interfaces de red (Ingress/Egress), capacidad total vs. utilizada.
+2. **Componentes del Clúster:** Salud del API Server, ETCD, Scheduler y controladores.
+3. **Cargas de Trabajo y Pods:** Estado de réplicas (`Running`, `Terminating`), tasa de reinicios, tiempo de vida y Pods no programados.
+4. **Aplicación y Servicios:** Sondas de salud (`livenessProbe`, `readinessProbe`), tiempos de respuesta y transacciones de negocio.
+
+### Requisitos de Calidad de las Métricas
+Las métricas recolectadas deben ser:
+- Específicas
 - Accionables
-- RElevantes
-- Oportinas
+- Relevantes
+- Oportunas
 - Medibles
 
-Piramede de Monitoreo
-- Recursos fidicos y virtuales
-- Metricas de Kebernetes y sus componentes
-- Metricas de los srevicios y aplicaciones que se ejecutan en el cluster
+---
 
-Dos modelos
-- RED
-- USE
+## 4. Herramientas Auxiliares y Tecnologías Clave
 
-Kubernetes recompilacion de metricas
-- Daemon Sets
-- Sidecards
-
-- Prometheus
-- Visualizacion: Grafana, Hibana, DataDog
-- Alertas: 
-- Pipelines de Datos de las metricas.
-- Conocer el estado
-
-Metricas
-- Metricas de Infra. 
-- Metricas de Cluster.
-- Metricas de Pods.
-- Metricas de Red.
-- Metricas de Aplicación.
-
-Cuales son las metricas de Infra?
-Metricas de Red
-Metricas de Cluster, cosas del ETCD, API Server Etc etc.
-
-Capacidad total del cluster vs la usada.
-
-Metricas
-- Estado de un Pod. Running 
-- Tasa de reinicio
-- Tiempo de los Pods
-- Pods no programados
-
-Healchecks
-- Verificar si la app está funcionando
-- Verificar si la app está lista para recibir
-- Tiempo de respuesta
-
-Alertar
-- No superar el 80%
-- Latencia elevada de la API
-- Etc
-
-
-Ingress - Egress
-
-Metricas para la HPA
-
-Metricas para el Almacenamiento el PVC etc etc.
-
-Con lo que vamos a levantar del despliegue cada uno tenemos que implementar un sistema de observabilidad. Poder visualizar como esos despliegues con las métricas como van operando.
-
-
-Monitoreo Descentralizado y
-Sencillito
-
-Monitoreo Distribuido
-Complejo
-
-Si podemos montar un LK = Bonus
-
-Metricas va primero.
-Metricas - Logs - Traces
-
-Crear modulo de Kubernetes, Service Mesh
-Una cuenta verificada. Determinar si es B2B - B2C
-
-Presentación de despliegue con observabilidad.
+- **Orquestador:** Kubernetes (Minikube / clúster de laboratorio).
+- **Herramientas de Operación:** Lens (Kubernetes IDE), Terraform (por confirmar).
+- **Pila de Observabilidad y Telemetría:** Prometheus, Grafana, Alertmanager, Kubecost.
+- **Gestión de Logs:** Pila ELK (Elasticsearch, Logstash/Fluentbit, Kibana).

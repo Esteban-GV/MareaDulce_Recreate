@@ -39,10 +39,15 @@ Implementar un entorno reproducible en Kubernetes que ejecute un ciclo de actual
 
 ### Objetivos Específicos
 1. Configurar los manifiestos declarativos de Kubernetes (`Deployment`, `Service`, `Ingress`, sondas de salud `livenessProbe` y `readinessProbe`) aplicando la estrategia de actualización `Recreate`.
-2. Desplegar y configurar una pila de observabilidad basada en Prometheus y Grafana, enfocada en la recolección de métricas de infraestructura, cluster, pods y aplicación.
-3. Instrumentar la captura de métricas bajo los modelos estándar **RED** (*Rate*, *Errors*, *Duration*) y **USE** (*Utilization*, *Saturation*, *Errors*).
-4. Automatizar la generación de tráfico continuo para evidenciar y registrar el lapso exacto de indisponibilidad y los errores de conexión resultantes durante el relevo de versiones.
-5. Estructurar un guion y panel de control para la demostración en vivo de cinco minutos.
+2. Implementar políticas de aislamiento de red (**Network Policies**) para tráfico Ingress/Egress y persistencia mediante **PersistentVolumeClaim (PVC)**.
+3. Configurar reglas concisas y sustentables de autoescalado horizontal (**HPA**) justificadas en el perfil de carga y fechas clave de la aplicación.
+4. Desplegar y configurar la pila de observabilidad basada en Prometheus, Alertmanager y Grafana, capturando telemetría bajo los modelos estándar **RED** (*Rate*, *Errors*, *Duration*) y **USE** (*Utilization*, *Saturation*, *Errors*).
+5. Integrar la gestión de costos de infraestructura mediante **Kubecost** y su tablero analítico correspondiente.
+6. Implementar una pila de centralización de logs en tiempo real (**ELK**) para recopilar, procesar y correlacionar registros con el ciclo de vida de los Pods.
+7. Implementar un esquema de autenticación robusto (**SSO** o autenticación reforzada) que trascienda la validación básica de credenciales planas.
+8. Consolidar en el tablero de control la visualización unificada de métricas, logs, trazas, eventos y alertas operativas orientadas al negocio.
+9. Automatizar la generación de tráfico continuo para evidenciar y registrar el lapso exacto de indisponibilidad (*downtime*) y errores de conexión durante el relevo de versiones.
+10. Elaborar el material de sustentación: diapositivas con el caso de negocio completo, documentación técnica y guion para la demostración en vivo de cinco minutos.
 
 ---
 
@@ -162,14 +167,18 @@ Para la sustentación oral de la asignatura Plataformas II, el equipo estructura
 
 ---
 
-## 8. Herramientas Auxiliares y Decisiones Técnicas
+## 8. Módulos y Componentes de la Plataforma
 
-1. **Lens (Kubernetes IDE):**
-   - Utilidad: Interfaz visual en tiempo real para observar el cambio de estado de los Pods (de verde a gris/rojo durante la terminación y de amarillo a verde durante la creación de la nueva versión).
-2. **Pila de Observabilidad con Helm:**
-   - Despliegue de `kube-prometheus-stack` mediante Helm para aprovisionar Prometheus Operator, Grafana, `kube-state-metrics` y `node-exporter` de forma modular y estandarizada.
-3. **Aprovisionamiento con Terraform (Estado: Por confirmar):**
-   - Pendiente de validación con el docente para determinar si se requiere como requisito de evaluación o si el despliegue directo con Helm y manifiestos de Kubernetes es suficiente.
-4. **Ampliación de Observabilidad (Opcional / Valor Agregado):**
-   - Exploración de centralización de logs (Loki / EFK) para correlacionar el momento exacto del cese de peticiones en los registros de acceso.
+| Módulo / Dominio | Componente Técnico | Propósito y Relevancia en el Proyecto |
+| :--- | :--- | :--- |
+| **Carga de Trabajo Principal** | `Deployment` (`strategy: Recreate`) | Ejecución del microservicio con reinicio en bloque de réplicas para forzar y medir el downtime. |
+| **Persistencia** | `PersistentVolumeClaim` (PVC) | Almacenamiento desacoplado para datos persistentes o estados de la carga de trabajo. |
+| **Seguridad de Red** | `NetworkPolicy` | Restricción y control explícito del tráfico Ingress/Egress en el clúster. |
+| **Escalabilidad** | `HorizontalPodAutoscaler` (HPA) | Autoescalado dinámico según utilización y estacionalidad de la demanda de negocio. |
+| **Gestión Financiera (FinOps)** | `Kubecost` | Monitoreo y asignación en tiempo real de costos de cómputo, red y almacenamiento del clúster. |
+| **Centralización de Registros** | Pila `ELK` (Elasticsearch, Logstash, Kibana) | Procesamiento y visualización de grandes volúmenes de logs en tiempo real correlacionados con eventos de corte. |
+| **Control de Acceso y Seguridad** | `SSO` / Autenticación Reforzada | Validación de identidad robusta que supera esquemas convencionales de credenciales simples. |
+| **Observabilidad Unificada** | `Prometheus`, `Grafana`, `Alertmanager` | Dashboards con métricas RED/USE, trazas, eventos del clúster y reglas de alerta ante saturación (>80%) o fallas. |
+| **Entorno y Herramientas** | `Minikube`, `Helm`, `Lens IDE` | Clúster local, empaquetado de componentes y visualizador gráfico de estados del clúster. |
+| **Entregables de Presentación** | Diapositivas y Guion de Presentación | Exposición ejecutiva del caso de negocio y guion sincronizado para la sustentación en vivo de cinco minutos. |
 
