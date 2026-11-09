@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: recreate-app
     app.kubernetes.io/version: "1.0.0"
 spec:
-  replicas: 2
+  # El número de réplicas (minReplicas: 2, maxReplicas: 6) es gestionado dinámicamente por k8s/hpa.yaml
   strategy:
     type: Recreate
   selector:

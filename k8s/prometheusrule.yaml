@@ -1,0 +1,62 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: recreate-app-alert-rules
+  namespace: recreate-lab
+  labels:
+    app.kubernetes.io/name: recreate-app
+    release: prometheus-stack
+spec:
+  groups:
+    - name: recreate.deployment.rules
+      interval: 5s
+      rules:
+        - alert: RecreateDeploymentZeroReplicasWindow
+          expr: kube_deployment_status_replicas_available{namespace="recreate-lab", deployment="recreate-app-deployment"} == 0
+          for: 0m
+          labels:
+            severity: warning
+            strategy: recreate
+          annotations:
+            summary: "Ventana de inactividad activa en despliegue Recreate"
+            description: "El Deployment recreate-app-deployment tiene 0 replicas disponibles en recreate-lab debido a un ciclo de transicion Recreate o fallo de pods."
+
+        - alert: HighHttp5xxErrorRate
+          expr: sum(rate(http_requests_total{namespace="recreate-lab", status_code=~"5.."}[1m])) > 0.2
+          for: 10s
+          labels:
+            severity: critical
+            component: backend
+          annotations:
+            summary: "Tasa elevada de errores HTTP 5xx en recreate-app"
+            description: "El microservicio recreate-app registra mas de 0.2 errores HTTP 5xx por segundo de forma sostenida."
+
+        - alert: HighRequestLatencyP95
+          expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace="recreate-lab"}[1m])) by (le)) > 1.0
+          for: 10s
+          labels:
+            severity: warning
+            component: backend
+          annotations:
+            summary: "Degradacion de latencia P95 en recreate-app (> 1s)"
+            description: "El percentil 95 de tiempo de respuesta supero el umbral de 1.0 segundo."
+
+        - alert: HighPodCpuUsageAbove80Percent
+          expr: (sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="recreate-lab", pod=~"recreate-app-deployment-.*"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{namespace="recreate-lab", container="web-app", resource="cpu"})) * 100 > 80
+          for: 15s
+          labels:
+            severity: warning
+            component: compute
+          annotations:
+            summary: "Uso de CPU por encima del 80% en pod de recreate-app"
+            description: "El contenedor web-app supera el 80% de su limite de CPU asignado (300m)."
+
+        - alert: PersistentVolumeStorageErrors
+          expr: sum(rate(app_pvc_storage_operations_total{namespace="recreate-lab", status="error"}[1m])) > 0
+          for: 5s
+          labels:
+            severity: critical
+            component: storage
+          annotations:
+            summary: "Errores de lectura/escritura en el volumen persistente PVC"
+            description: "Se detectaron fallos de E/S al operar sobre /data/recreate_platform.db en el volumen recreate-app-pvc."

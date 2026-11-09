@@ -1,6 +1,10 @@
 # Bitácoras privadas y entorno del agente
+.gemini
 .gemini/
+.antigravity
+.antigravity/
 .directory
+backup_safe/
 
 # Python
 __pycache__/

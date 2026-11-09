@@ -15,4 +15,5 @@ spec:
       path: /metrics
       interval: 5s
       scrapeTimeout: 3s
+      honorLabels: true
 

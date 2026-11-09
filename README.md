@@ -40,12 +40,12 @@ k8s-recreate-deployment/
 
 | Tecnología / Herramienta | Tipo / Rol en el Proyecto | Versión / Estándar |
 | :--- | :--- | :--- |
-| **Kubernetes** | Orquestador principal de contenedores | `v1.28+` |
+| **Kubernetes** | Orquestador principal de contenedores | `v1.28+` / `v1.35+` |
 | **Estrategia Recreate** | Mecanismo de actualización de cargas de trabajo | `spec.strategy.type: Recreate` |
 | **Docker Engine** | Motor de contenedores y runtime local | `v24.0+` |
-| **Minikube / Kind** | Cluster de Kubernetes local para laboratorio | Minikube `v1.32+` / Kind `v0.20+` |
+| **Minikube / Kind** | Cluster de Kubernetes local para laboratorio | Minikube `v1.32+` / `v1.38+` |
 | **Prometheus** | Servidor de recolección y consulta de métricas | `v2.45+` (TSDB) |
-| **Grafana** | Visualización interactiva y tableros de control | `v10.0+` |
+| **Grafana** | Visualización interactiva y tableros de control | `v10.0+` / `v11.0+` |
 | **Python Diagrams** | Diagramación automatizada de infraestructura como código | `v0.25.1` (Graphviz `0.20.3`) |
 | **YAML / Bash** | Definición declarativa de infraestructura y automatización | POSIX Shell / YAML 1.2 |
 
@@ -93,7 +93,7 @@ flowchart TD
 | Componente / Herramienta | Versión Mínima | Configuración Mínima Requerida |
 | :--- | :--- | :--- |
 | **Docker Engine** | `24.0.0` o superior | Demonio `docker.service` activo; usuario actual añadido al grupo `docker` (`sudo usermod -aG docker $USER`) para ejecutar comandos sin `sudo` |
-| **Minikube** | `v1.32.0` o superior | Asignación obligatoria de recursos: mínimo `4 vCPUs` (`--cpus=4`) y `8192 MB` (8 GB) de RAM (`--memory=8192`). **Justificación técnica:** Requerimiento imperativo para alojar de forma simultánea y concurrente el microservicio, la pila de observabilidad completa (`kube-prometheus-stack`), la gestión financiera de infraestructura (`Kubecost`) y el procesamiento centralizado de logs (`ELK`/Elasticsearch) sin incurrir en estrangulamiento de cómputo (*throttling*) ni desalojo de Pods por agotamiento de memoria (*OOMKilled* / *Pod Eviction*). Driver Docker configurado (`minikube config set driver docker`); puertos locales `80`, `443` y `8443` libres de conflicto |
+| **Minikube** | `v1.32.0` o superior | Asignación obligatoria de recursos: mínimo `6 vCPUs` (`--cpus=6`) y `10240 MB` (10 GB) de RAM (`--memory=10240`). **Justificación técnica:** Requerimiento imperativo para alojar de forma simultánea y concurrente el microservicio, la pila de observabilidad completa (`kube-prometheus-stack`), la gestión financiera de infraestructura (`Kubecost`) y el procesamiento centralizado de logs (`ELK`/Elasticsearch) sin incurrir en estrangulamiento de cómputo (*throttling*) ni desalojo de Pods por agotamiento de memoria (*OOMKilled* / *Pod Eviction*). Driver Docker configurado (`minikube config set driver docker`); puertos locales `80`, `443` y `8443` libres de conflicto |
 | **kubectl CLI** | `v1.28.0` o superior | Contexto activo apuntando al cluster local (`kubectl config current-context` -> `minikube`) |
 | **Helm** | `v3.12.0` o superior | Gestor de paquetes para el aprovisionamiento de las pilas de observabilidad y auditoría de costos |
 | **Python** | `3.10` o superior | Entorno virtual disponible para utilidades, generación de diagramas y pruebas de carga |
@@ -115,7 +115,7 @@ flowchart TD
 
 3. **Iniciar el cluster local con Minikube (con especificaciones justificadas):**
    ```bash
-   minikube start --driver=docker --cpus=4 --memory=8192
+   minikube start --driver=docker --cpus=6 --memory=10240
    ```
 
 4. **Aplicar los manifiestos declarativos de Kubernetes:**

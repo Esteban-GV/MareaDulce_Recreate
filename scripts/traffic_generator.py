@@ -7,16 +7,45 @@ Autores: Esteban Guarín Valencia, Juan José Arias Gallego
 
 import sys
 import time
+import socket
+import subprocess
 import argparse
 import urllib.request
 import urllib.error
 from datetime import datetime
 
 
+def resolve_target_url(target_url: str, host_header: str) -> tuple[str, str]:
+    clean_url = target_url.rstrip("/")
+    if not clean_url.endswith("/api/info"):
+        clean_url = f"{clean_url}/api/info"
+
+    if "://recreate.local" in clean_url:
+        try:
+            socket.gethostbyname("recreate.local")
+        except socket.gaierror:
+            # Si /etc/hosts no tiene recreate.local, resolver IP del Ingress automaticamente
+            ingress_ip = "192.168.49.2"
+            try:
+                out = subprocess.check_output(
+                    ["kubectl", "get", "ingress", "recreate-app-ingress", "-n", "recreate-lab", "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}"],
+                    text=True,
+                    timeout=3,
+                ).strip()
+                if out:
+                    ingress_ip = out
+            except Exception:
+                pass
+            clean_url = clean_url.replace("://recreate.local", f"://{ingress_ip}")
+            host_header = "recreate.local"
+    return clean_url, (host_header or "recreate.local")
+
+
 def run_traffic_test(target_url: str, interval: float, duration: int, host_header: str = "recreate.local"):
+    resolved_url, effective_host = resolve_target_url(target_url, host_header)
     print("=" * 70)
     print("GENERADOR DE TRÁFICO SINTÉTICO Y TELEMETRÍA DE DOWNTIME")
-    print(f"URL Objetivo: {target_url}")
+    print(f"URL Objetivo: {target_url} -> {resolved_url} (Host: {effective_host})")
     print(f"Intervalo: {interval}s ({1.0/interval:.1f} req/s)")
     print(f"Duración máxima: {duration if duration > 0 else 'Indefinida'} segundos")
     print("=" * 70)
@@ -46,10 +75,10 @@ def run_traffic_test(target_url: str, interval: float, duration: int, host_heade
 
             try:
                 req = urllib.request.Request(
-                    f"{target_url.rstrip('/')}/api/info",
+                    resolved_url,
                     headers={
                         "User-Agent": "K8s-Traffic-Generator/1.0",
-                        "Host": host_header or "recreate.local",
+                        "Host": effective_host,
                     },
                 )
                 with urllib.request.urlopen(req, timeout=1.5) as resp:
@@ -124,7 +153,7 @@ def run_traffic_test(target_url: str, interval: float, duration: int, host_heade
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Medidor de Downtime para Kubernetes Recreate")
-    parser.add_argument("--url", default="http://localhost:8000", help="URL objetivo del servicio o Ingress")
+    parser.add_argument("--url", default="http://localhost:8080", help="URL objetivo del servicio o Ingress (default: http://localhost:8080)")
     parser.add_argument("--interval", type=float, default=0.2, help="Intervalo en segundos entre solicitudes (default: 0.2s = 5 req/s)")
     parser.add_argument("--duration", type=int, default=0, help="Duración máxima en segundos (0 para infinito)")
     parser.add_argument("--host", default="recreate.local", help="Cabecera Host HTTP para el Ingress (default: recreate.local)")

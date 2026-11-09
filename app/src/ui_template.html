@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreLedger Cloud-Native · Panel Operativo Recreate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #0B1020;
+            --bg-surface: #111832;
+            --bg-elevated: #172042;
+            --bg-inset: #0D142B;
+            --border-default: #26304F;
+            --border-strong: #34406A;
+            --text-primary: #E8ECF8;
+            --text-secondary: #9AA6C7;
+            --text-muted: #6B7799;
+            --brand-blue: #3B82F6;
+            --brand-cyan: #22D3EE;
+            --status-success: #22C55E;
+            --status-success-bg: rgba(34, 197, 94, 0.12);
+            --status-success-border: rgba(34, 197, 94, 0.32);
+            --status-warning: #F59E0B;
+            --status-warning-bg: rgba(245, 158, 11, 0.12);
+            --status-warning-border: rgba(245, 158, 11, 0.32);
+            --status-danger: #EF4444;
+            --status-danger-bg: rgba(239, 68, 68, 0.12);
+            --status-danger-border: rgba(239, 68, 68, 0.32);
+            --status-info: #38BDF8;
+            --status-info-bg: rgba(56, 189, 248, 0.12);
+            --status-info-border: rgba(56, 189, 248, 0.32);
+            --version-v1-base: #1E3A8A;
+            --version-v1-fg: #3B82F6;
+            --version-v2-base: #14532D;
+            --version-v2-fg: #22C55E;
+            --accent: __ACCENT_COLOR__;
+            --accent-bg: __ACCENT_BG__;
+            --accent-border: __ACCENT_BORDER__;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-pill: 999px;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            line-height: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .tnum {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+        }
+
+        /* Focus Ring */
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--brand-blue);
+            outline-offset: 2px;
+        }
+
+        /* 1. Barra de navegación fija (64px) */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 64px;
+            background-color: rgba(11, 16, 32, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .navbar-inner {
+            max-width: 1200px;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            text-decoration: none;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background-color: var(--brand-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+        }
+
+        .brand-title {
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-title span {
+            color: var(--brand-cyan);
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-success);
+            flex-shrink: 0;
+        }
+
+        .status-dot.pulse {
+            animation: pulseAnim 1.6s infinite ease-out;
+        }
+
+        .status-dot.offline {
+            background-color: var(--status-danger);
+            animation: none;
+        }
+
+        .status-dot.paused {
+            background-color: var(--text-muted);
+            animation: none;
+        }
+
+        @keyframes pulseAnim {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+            70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background-color: var(--border-default);
+            margin: 0 var(--space-2);
+        }
+
+        .nav-link {
+            height: 36px;
+            padding: 0 var(--space-3);
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 150ms ease-out, color 150ms ease-out;
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .nav-link:active {
+            background-color: var(--bg-inset);
+        }
+
+        .nav-link.active-tab {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+
+        .nav-link .ext-icon {
+            color: var(--text-muted);
+            width: 12px;
+            height: 12px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid var(--border-default);
+            color: var(--text-primary);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Banner global de caída / reconexión durante Recreate */
+        .downtime-banner {
+            display: none;
+            position: sticky;
+            top: 64px;
+            z-index: 95;
+            padding: var(--space-3) var(--space-5);
+            border-bottom: 1px solid var(--status-danger-border);
+            background-color: #1F1224;
+            color: var(--text-primary);
+            transition: all 200ms ease-out;
+        }
+
+        .downtime-banner.active-danger {
+            display: block;
+            background-color: rgba(127, 29, 29, 0.92);
+            border-bottom-color: var(--status-danger);
+        }
+
+        .downtime-banner.active-recovered {
+            display: block;
+            background-color: rgba(20, 83, 45, 0.92);
+            border-bottom-color: var(--status-success);
+        }
+
+        .downtime-banner-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            font-weight: 500;
+        }
+
+        .banner-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        /* Contenedor Principal (1200px centrado, separación 32px) */
+        .main-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--space-6) var(--space-5);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+            flex: 1;
+        }
+
+        /* 2. Cabecera de Estado (Hero) */
+        .hero-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-top: 4px solid var(--accent);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .hero-top {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .hero-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .hero-title {
+            font-size: 32px;
+            line-height: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .version-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            background-color: var(--accent-bg);
+            border: 1px solid var(--accent-border);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .hero-desc {
+            max-width: 760px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 22px;
+        }
+
+        .hero-desc strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .hero-chips {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-top: var(--space-1);
+        }
+
+        .chip {
+            height: 28px;
+            padding: 0 var(--space-3);
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chip.chip-warning {
+            background-color: var(--status-warning-bg);
+            border-color: var(--status-warning-border);
+            color: var(--status-warning);
+        }
+
+        .hero-monitor-bar {
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+
+        .monitor-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .monitor-text-main {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .monitor-text-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .monitor-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        /* Botones generales */
+        .btn {
+            height: 36px;
+            padding: 0 var(--space-4);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            cursor: pointer;
+            transition: all 150ms ease-out;
+            border: 1px solid var(--border-default);
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover:not(:disabled) {
+            border-color: var(--border-strong);
+            background-color: #1E2952;
+        }
+
+        .btn:active:not(:disabled) {
+            background-color: var(--bg-inset);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-lg {
+            height: 40px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--brand-blue);
+            border-color: var(--brand-blue);
+            color: #FFFFFF;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #2563EB;
+            border-color: #2563EB;
+        }
+
+        .btn-warning {
+            background-color: var(--status-warning-bg);
+            border-color: var(--status-warning-border);
+            color: var(--status-warning);
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background-color: rgba(245, 158, 11, 0.2);
+            border-color: var(--status-warning);
+        }
+
+        .btn-danger {
+            background-color: var(--status-danger-bg);
+            border-color: var(--status-danger-border);
+            color: var(--status-danger);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: var(--status-danger);
+        }
+
+        .icon-btn-copy {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            border: 1px solid var(--border-default);
+            background-color: var(--bg-inset);
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 150ms ease-out;
+        }
+
+        .icon-btn-copy:hover {
+            color: var(--brand-cyan);
+            border-color: var(--border-strong);
+            background-color: var(--bg-elevated);
+        }
+
+        /* 3. Línea de tiempo del ciclo Recreate */
+        .section-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        .section-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-badges {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+
+        .downtime-measured-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            color: var(--brand-cyan);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .timeline-steps {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-3);
+            position: relative;
+        }
+
+        .timeline-step {
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            position: relative;
+            transition: all 200ms ease-out;
+        }
+
+        .timeline-step.step-active {
+            border-color: var(--brand-blue);
+            background-color: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 0 1px var(--brand-blue);
+        }
+
+        .timeline-step.step-completed {
+            border-color: var(--status-success-border);
+            background-color: rgba(34, 197, 94, 0.06);
+        }
+
+        .timeline-step.step-cut-active {
+            border-color: var(--status-danger);
+            background-color: var(--status-danger-bg);
+            box-shadow: 0 0 0 1px var(--status-danger);
+        }
+
+        .step-top {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border-strong);
+            background-color: var(--bg-surface);
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-active .step-circle {
+            background-color: var(--brand-blue);
+            border-color: var(--brand-blue);
+            color: #FFFFFF;
+        }
+
+        .step-completed .step-circle {
+            background-color: var(--status-success);
+            border-color: var(--status-success);
+            color: #0B1020;
+        }
+
+        .step-cut-active .step-circle {
+            background-color: var(--status-danger);
+            border-color: var(--status-danger);
+            color: #FFFFFF;
+        }
+
+        .step-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .step-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 16px;
+        }
+
+        /* 4. Cuadrícula de 6 Tarjetas de Estado (3x2 sin huecos) */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-5);
+            position: relative;
+        }
+
+        .kpi-grid.stale-overlay .kpi-card {
+            opacity: 0.55;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            min-height: 176px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: var(--space-3);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: border-color 150ms ease-out, opacity 200ms ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            border-color: var(--border-strong);
+        }
+
+        .stale-badge {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 52px;
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+            background-color: var(--status-danger-bg);
+            border: 1px solid var(--status-danger-border);
+            color: var(--status-danger);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .kpi-grid.stale-overlay .stale-badge {
+            display: inline-flex;
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-2);
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            line-height: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+        }
+
+        .kpi-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand-cyan);
+            flex-shrink: 0;
+        }
+
+        .kpi-main-value {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            min-height: 34px;
+        }
+
+        .kpi-value-text {
+            font-size: 24px;
+            line-height: 30px;
+            font-weight: 700;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .kpi-value-mono {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 600;
+            color: var(--brand-cyan);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .status-pill.pill-success {
+            background-color: var(--status-success-bg);
+            border: 1px solid var(--status-success-border);
+            color: var(--status-success);
+        }
+
+        .status-pill.pill-danger {
+            background-color: var(--status-danger-bg);
+            border: 1px solid var(--status-danger-border);
+            color: var(--status-danger);
+        }
+
+        .status-pill.pill-warning {
+            background-color: var(--status-warning-bg);
+            border: 1px solid var(--status-warning-border);
+            color: var(--status-warning);
+        }
+
+        .kpi-divider {
+            height: 1px;
+            background-color: var(--border-default);
+            width: 100%;
+        }
+
+        .kpi-meta-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .kpi-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-2);
+            font-size: 12px;
+        }
+
+        .kpi-meta-key {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .kpi-meta-val {
+            color: var(--text-primary);
+            font-weight: 500;
+            text-align: right;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .kpi-meta-val.mono {
+            font-size: 12px;
+        }
+
+        .link-btn-inline {
+            background: none;
+            border: none;
+            color: var(--brand-cyan);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            margin-top: 2px;
+            text-align: left;
+        }
+
+        .link-btn-inline:hover {
+            color: var(--brand-blue);
+        }
+
+        /* 5. Centro de Control y Pruebas en Vivo */
+        .control-groups {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-4);
+        }
+
+        .control-group {
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .control-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .control-group-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .control-group-buttons .btn {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* 6. Libro Contable Persistido en PVC */
+        .ledger-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .ledger-header {
+            padding: var(--space-5);
+            border-bottom: 1px solid var(--border-default);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .ledger-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .ledger-total-badge {
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .ledger-total-badge strong {
+            color: var(--brand-blue);
+            font-family: var(--font-mono);
+            font-size: 15px;
+            margin-left: 4px;
+        }
+
+        .ledger-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .segmented-control {
+            display: inline-flex;
+            background-color: var(--bg-inset);
+            padding: 3px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-default);
+        }
+
+        .seg-btn {
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 150ms ease-out;
+        }
+
+        .seg-btn.active {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            flex: 1;
+            max-width: 340px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 var(--space-3);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-default);
+            background-color: var(--bg-inset);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .ledger-table th {
+            height: 44px;
+            padding: 0 var(--space-4);
+            background-color: var(--bg-inset);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--border-default);
+            white-space: nowrap;
+        }
+
+        .ledger-table td {
+            height: 56px;
+            padding: 0 var(--space-4);
+            border-bottom: 1px solid var(--border-default);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .ledger-table tbody tr {
+            transition: background-color 150ms ease-out;
+        }
+
+        .ledger-table tbody tr:hover {
+            background-color: var(--bg-elevated);
+        }
+
+        .ledger-table tbody tr.row-highlight {
+            animation: highlightRow 2s ease-out;
+        }
+
+        @keyframes highlightRow {
+            0% { background-color: rgba(59, 130, 246, 0.28); }
+            100% { background-color: transparent; }
+        }
+
+        .col-tx {
+            font-family: var(--font-mono);
+            color: var(--brand-cyan);
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 130px;
+        }
+
+        .col-date {
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .col-concept {
+            color: var(--text-primary);
+            max-width: 280px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .col-amount {
+            text-align: right;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .col-amount .currency-unit {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        .ver-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .ver-badge.v1 {
+            background-color: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: #60A5FA;
+        }
+
+        .ver-badge.v2 {
+            background-color: var(--status-success-bg);
+            border: 1px solid var(--status-success-border);
+            color: var(--status-success);
+        }
+
+        .schema-chip {
+            display: inline-flex;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .hash-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .ledger-footer {
+            padding: var(--space-3) var(--space-5);
+            background-color: var(--bg-inset);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Tarjetas móviles para la tabla (<768px) */
+        .mobile-ledger-cards {
+            display: none;
+            padding: var(--space-4);
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .mobile-tx-card {
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .mobile-tx-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 7. Vista Resumen Ejecutivo (B7) */
+        .executive-view {
+            display: none;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .executive-view.active {
+            display: flex;
+        }
+
+        .exec-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+
+        .exec-metric-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .exec-metric-num {
+            font-size: 28px;
+            line-height: 34px;
+            font-weight: 700;
+            color: var(--brand-cyan);
+            font-family: var(--font-mono);
+        }
+
+        .exec-pillars {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-3);
+        }
+
+        .exec-pillar {
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Modal y Panel Lateral (Drawer) */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background-color: rgba(6, 10, 22, 0.75);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4);
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 440px;
+            padding: var(--space-5);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            height: 40px;
+            padding: 0 var(--space-3);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-default);
+            background-color: var(--bg-inset);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .drawer-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 210;
+            background-color: rgba(6, 10, 22, 0.65);
+            justify-content: flex-end;
+        }
+
+        .drawer-backdrop.open {
+            display: flex;
+        }
+
+        .drawer-panel {
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            background-color: var(--bg-elevated);
+            border-left: 1px solid var(--border-strong);
+            padding: var(--space-5);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            overflow-y: auto;
+            box-shadow: -12px 0 32px rgba(0, 0, 0, 0.45);
+        }
+
+        .code-block {
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--brand-cyan);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            max-width: 380px;
+        }
+
+        .toast {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            border-left: 4px solid var(--brand-blue);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            animation: slideIn 180ms ease-out;
+        }
+
+        .toast.toast-success { border-left-color: var(--status-success); }
+        .toast.toast-warning { border-left-color: var(--status-warning); }
+        .toast.toast-danger { border-left-color: var(--status-danger); }
+
+        @keyframes slideIn {
+            from { transform: translateY(12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Footer */
+        .footer {
+            height: 64px;
+            border-top: 1px solid var(--border-default);
+            background-color: var(--bg-page);
+            margin-top: auto;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive Breakpoints (B8) */
+        @media (max-width: 1199px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .control-groups {
+                grid-template-columns: 1fr;
+            }
+            .nav-link span.nav-label-ext {
+                display: none;
+            }
+            .col-schema-cell {
+                display: none;
+            }
+            .exec-metrics-row, .exec-pillars {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 767px) {
+            .nav-links, .nav-status {
+                display: none;
+            }
+            .mobile-menu-btn {
+                display: inline-flex;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .timeline-steps {
+                grid-template-columns: 1fr;
+            }
+            .hero-title {
+                font-size: 24px;
+                line-height: 32px;
+            }
+            .monitor-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            .monitor-actions .btn {
+                width: 100%;
+            }
+            .table-wrapper {
+                display: none;
+            }
+            .mobile-ledger-cards {
+                display: flex;
+            }
+            .exec-metrics-row, .exec-pillars {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Barra de Navegación Fija -->
+    <header class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-logo" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <div class="brand-title">CoreLedger<span>Cloud-Native</span></div>
+            </a>
+
+            <div class="nav-status" id="nav-service-status" role="status">
+                <span class="status-dot pulse" id="nav-status-dot"></span>
+                <span id="nav-status-text">Servicio operativo</span>
+            </div>
+
+            <nav class="nav-links" aria-label="Navegación principal y herramientas">
+                <button type="button" class="nav-link active-tab" id="tab-btn-operativo" onclick="switchMainView('operativo')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>Panel Operativo</span>
+                </button>
+                <button type="button" class="nav-link" id="tab-btn-ejecutivo" onclick="switchMainView('ejecutivo')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>Resumen Ejecutivo</span>
+                </button>
+
+                <div class="nav-divider"></div>
+
+                <a href="http://localhost:3000/d/coreledger-recreate-red-use" target="_blank" rel="noopener" class="nav-link" title="Grafana Dashboard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <span class="nav-label-ext">Grafana</span>
+                    <svg class="ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <a href="http://localhost:9090" target="_blank" rel="noopener" class="nav-link" title="Prometheus">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span class="nav-label-ext">Prometheus</span>
+                    <svg class="ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <a href="http://localhost:9093" target="_blank" rel="noopener" class="nav-link" title="Alertmanager">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="nav-label-ext">Alertmanager</span>
+                    <svg class="ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <a href="http://localhost:5601" target="_blank" rel="noopener" class="nav-link" title="Kibana (ELK)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span class="nav-label-ext">Kibana (ELK)</span>
+                    <svg class="ext-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/docs" target="_blank" rel="noopener" class="nav-link" title="Swagger OpenAPI Docs">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <span class="nav-label-ext">Swagger</span>
+                </a>
+                <a href="/metrics" target="_blank" rel="noopener" class="nav-link" title="Métricas Prometheus">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                    <span class="nav-label-ext">/metrics</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Banner de Indisponibilidad durante cambio de versión Recreate (B6.4) -->
+    <div class="downtime-banner" id="downtime-banner" role="alert" aria-live="assertive">
+        <div class="downtime-banner-inner">
+            <div class="banner-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span id="downtime-banner-msg">Servicio no disponible. Cambio de versión en curso, reconectando…</span>
+            </div>
+            <div class="mono tnum" id="downtime-banner-timer">0.0 s</div>
+        </div>
+    </div>
+
+    <main class="main-container">
+        <!-- VISTA 1: PANEL OPERATIVO -->
+        <div id="view-operativo" style="display: flex; flex-direction: column; gap: var(--space-6);">
+
+            <!-- 2. Cabecera de Estado (Hero) -->
+            <section class="hero-card" id="hero-card">
+                <div class="hero-top">
+                    <div class="hero-title-row">
+                        <h1 class="hero-title">CoreLedger Microservice</h1>
+                        <div class="version-pill" id="hero-version-pill">
+                            <span class="status-dot" style="background-color: currentColor;"></span>
+                            <span id="hero-version-text">__APP_VERSION__ · __VERSION_SUBLABEL__</span>
+                        </div>
+                    </div>
+                    <p class="hero-desc">
+                        Plataforma transaccional financiera desplegada bajo la estrategia <strong>Recreate</strong>. Garantiza coherencia estricta ACID y prevención de colisiones en base de datos SQLite montada sobre volumen persistente <strong>PVC (ReadWriteOnce)</strong>.
+                    </p>
+                    <div class="hero-chips">
+                        <span class="chip">Estrategia: RECREATE</span>
+                        <span class="chip" id="chip-schema">BD: __ACTIVE_SCHEMA__ (__COL_COUNT__ cols)</span>
+                        <span class="chip chip-warning" id="chip-schema-mismatch" style="display: __MISMATCH_DISPLAY__;" title="El pod ejecuta v1.0.0 pero el archivo SQLite en el PVC ya fue migrado previamente a 11 columnas por v2.0.0.">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            <span>Versión de app y de esquema difieren</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="hero-monitor-bar">
+                    <div class="monitor-info">
+                        <span class="status-dot pulse" id="monitor-dot"></span>
+                        <div>
+                            <div class="monitor-text-main" id="monitor-status-label">Monitoreo en vivo activo · refresco cada 3 s</div>
+                            <div class="monitor-text-sub" id="monitor-last-update">Última actualización: hace 1 s</div>
+                        </div>
+                    </div>
+                    <div class="monitor-actions">
+                        <button type="button" class="btn" id="btn-pause-refresh" onclick="toggleAutoRefresh()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="icon-pause-play"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            <span id="btn-pause-text">Pausar auto-refresco</span>
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="fetchLiveStatus(true)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                            <span>Actualizar ahora</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Línea de Tiempo del Ciclo Recreate -->
+            <section class="section-card" aria-label="Ciclo de despliegue Recreate">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2 class="section-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-cyan)" stroke-width="1.75"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <span>Ciclo de despliegue Recreate</span>
+                        </h2>
+                        <p class="section-subtitle" id="timeline-helper-text">Los pods de la versión anterior se terminan por completo antes de iniciar la nueva.</p>
+                    </div>
+                    <div class="timeline-badges">
+                        <div class="downtime-measured-pill tnum" id="measured-cut-pill">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+                            <span id="measured-cut-text">Último corte medido: 3.47 s</span>
+                        </div>
+                        <button type="button" class="btn" onclick="simulateRecreateCycleDemo()" id="btn-sim-cycle" title="Recorre visualmente las 5 etapas del ciclo Recreate para demostración">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span>Simular transición (12 s)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="timeline-steps" id="timeline-steps">
+                    <div class="timeline-step __STEP1_CLASS__" id="tl-step-1">
+                        <div class="step-top">
+                            <div class="step-circle">1</div>
+                            <div class="step-title">v1 en ejecución</div>
+                        </div>
+                        <div class="step-desc">Réplicas v1.0.0 activas atendiendo tráfico</div>
+                    </div>
+                    <div class="timeline-step __STEP2_CLASS__" id="tl-step-2">
+                        <div class="step-top">
+                            <div class="step-circle">2</div>
+                            <div class="step-title">Terminando pods v1</div>
+                        </div>
+                        <div class="step-desc">Envío de SIGTERM y cierre de conexiones</div>
+                    </div>
+                    <div class="timeline-step __STEP3_CLASS__" id="tl-step-3">
+                        <div class="step-top">
+                            <div class="step-circle">3</div>
+                            <div class="step-title">Ventana de corte (0 pods)</div>
+                        </div>
+                        <div class="step-desc">Liberación total de bloqueo en PVC</div>
+                    </div>
+                    <div class="timeline-step __STEP4_CLASS__" id="tl-step-4">
+                        <div class="step-top">
+                            <div class="step-circle">4</div>
+                            <div class="step-title">Iniciando v2 y migrando</div>
+                        </div>
+                        <div class="step-desc">BEGIN IMMEDIATE + ALTER TABLE</div>
+                    </div>
+                    <div class="timeline-step __STEP5_CLASS__" id="tl-step-5">
+                        <div class="step-top">
+                            <div class="step-circle">5</div>
+                            <div class="step-title">v2 lista</div>
+                        </div>
+                        <div class="step-desc">Sondas Readiness OK · esquema v2 activo</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Cuadrícula de 6 Tarjetas de Estado (3x2 sin huecos) -->
+            <section class="kpi-grid" id="kpi-grid" aria-label="Indicadores de estado del sistema">
+                <!-- Tarjeta 1: Estado del despliegue -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">ESTADO DEL DESPLIEGUE</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <span class="status-pill pill-success" id="kpi-deploy-pill">
+                            <span class="status-dot" style="background-color: currentColor;"></span>
+                            <span id="kpi-deploy-state">READY</span>
+                        </span>
+                        <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">(Recreate)</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Estrategia</span>
+                            <span class="kpi-meta-val">Recreate</span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Autoescalado HPA</span>
+                            <span class="kpi-meta-val tnum">2 – 6 réplicas</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 2: Pod activo y topología -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">POD ACTIVO Y TOPOLOGÍA</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <span class="kpi-value-mono" id="kpi-pod-short" title="__POD_NAME__">__POD_SHORT__</span>
+                        <button type="button" class="icon-btn-copy" onclick="copyText('__POD_NAME__', this)" id="btn-copy-pod" title="Copiar nombre completo del pod">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Nodo / IP</span>
+                            <span class="kpi-meta-val mono tnum" id="kpi-node-ip">__NODE_NAME__ · __POD_IP__</span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Uptime</span>
+                            <span class="kpi-meta-val tnum" id="kpi-uptime">__UPTIME_FMT__</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 3: Almacenamiento SQLite en PVC -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">ALMACENAMIENTO SQLITE EN PVC</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <span class="status-pill pill-success" id="kpi-db-pill">
+                            <span class="status-dot" style="background-color: currentColor;"></span>
+                            <span id="kpi-db-status">CONECTADA</span>
+                        </span>
+                        <span class="mono tnum" style="color: var(--text-secondary); font-size: 13px;" id="kpi-db-size">__DB_SIZE_KB__ KB</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Ruta</span>
+                            <span class="kpi-meta-val mono">
+                                <span>/data/recreate_platform.db</span>
+                                <button type="button" class="icon-btn-copy" onclick="copyText('/data/recreate_platform.db', this)" title="Copiar ruta de base de datos">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </button>
+                            </span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Modo de journal</span>
+                            <span class="kpi-meta-val mono" id="kpi-journal-mode">WAL</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 4: Control de concurrencia -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">CONTROL DE CONCURRENCIA</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <span class="kpi-value-mono">BEGIN IMMEDIATE</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">requires_exclusive_lock</span>
+                            <span class="kpi-meta-val" style="color: var(--status-success);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                                <span>Sí</span>
+                            </span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Concurrencia WAL</span>
+                            <span class="kpi-meta-val">Activa</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 5: Registros persistidos (PVC) -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">REGISTROS PERSISTIDOS (PVC)</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <div>
+                            <span class="kpi-value-text tnum" style="color: var(--brand-blue);" id="kpi-tx-count">__TX_COUNT__</span>
+                            <span style="color: var(--text-secondary); font-size: 14px; font-weight: 500; margin-left: 6px;">transacciones</span>
+                        </div>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Volumen acumulado</span>
+                            <span class="kpi-meta-val mono tnum" id="kpi-tx-volume">$__TX_VOLUME__ USD</span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Solicitudes en PVC</span>
+                            <span class="kpi-meta-val mono tnum" id="kpi-req-counter">__COUNTER_VAL__</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 6: Esquema relacional en disco -->
+                <article class="kpi-card">
+                    <span class="stale-badge">Datos desactualizados</span>
+                    <div class="kpi-header">
+                        <span class="kpi-label">ESQUEMA RELACIONAL EN DISCO</span>
+                        <div class="kpi-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-main-value">
+                        <span class="kpi-value-mono" id="kpi-schema-name">__ACTIVE_SCHEMA__</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-meta-grid">
+                        <div class="kpi-meta-row">
+                            <span class="kpi-meta-key">Estructura</span>
+                            <span class="kpi-meta-val tnum" id="kpi-col-count">__COL_COUNT__ columnas · Serializada</span>
+                        </div>
+                        <div class="kpi-meta-row">
+                            <button type="button" class="link-btn-inline" onclick="openSchemaDrawer()">Comparar con v1 (8 columnas) →</button>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- 5. Centro de Control y Pruebas en Vivo -->
+            <section class="section-card" aria-label="Centro de control y pruebas en vivo">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2 class="section-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-cyan)" stroke-width="1.75"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                            <span>Centro de control y pruebas en vivo</span>
+                        </h2>
+                        <p class="section-subtitle">Estas acciones ejecutan operaciones reales sobre el clúster y el volumen persistente PVC.</p>
+                    </div>
+                    <span class="chip chip-warning">Modo demostración</span>
+                </div>
+
+                <div class="control-groups">
+                    <div class="control-group">
+                        <span class="control-group-label">Datos y Persistencia ACID</span>
+                        <div class="control-group-buttons">
+                            <button type="button" class="btn btn-lg btn-primary" onclick="openTxModal()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <span>Nueva transacción en PVC</span>
+                            </button>
+                            <button type="button" class="btn btn-lg" id="btn-quick-tx" onclick="createQuickTransaction(this)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                <span>Transacción rápida</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="control-group-label">Seguridad Zero-Trust</span>
+                        <div class="control-group-buttons">
+                            <button type="button" class="btn btn-lg" onclick="runSsoMfaFlow()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><circle cx="16.5" cy="7.5" r=".5"/></svg>
+                                <span>Probar SSO / MFA</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="control-group-label">Escalado y Alertas</span>
+                        <div class="control-group-buttons">
+                            <button type="button" class="btn btn-lg btn-warning" onclick="triggerCpuLoad(this)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                                <span>Simular carga CPU (HPA)</span>
+                            </button>
+                            <button type="button" class="btn btn-lg btn-danger" onclick="triggerHttp500(this)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span>Simular HTTP 500 (alerta)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. Libro Contable Persistido en PVC -->
+            <section class="ledger-card" aria-label="Libro contable persistido en PVC">
+                <div class="ledger-header">
+                    <div class="ledger-header-top">
+                        <div class="section-title-group">
+                            <h2 class="section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-cyan)" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span>Libro contable persistido en PVC (RWO)</span>
+                            </h2>
+                            <p class="section-subtitle">Registros alojados en <code class="mono" style="color: var(--brand-cyan);">/data/recreate_platform.db</code>. Sobreviven al apagado de pods durante la estrategia Recreate.</p>
+                        </div>
+                        <div class="ledger-total-badge tnum">
+                            Total de registros: <strong id="ledger-total-count">__TX_COUNT__</strong>
+                        </div>
+                    </div>
+
+                    <div class="ledger-toolbar">
+                        <div class="segmented-control" role="group" aria-label="Filtrar por versión">
+                            <button type="button" class="seg-btn active" onclick="setVersionFilter('ALL', this)">Todas</button>
+                            <button type="button" class="seg-btn" onclick="setVersionFilter('v1.0.0', this)">v1.0.0</button>
+                            <button type="button" class="seg-btn" onclick="setVersionFilter('v2.0.0', this)">v2.0.0</button>
+                        </div>
+                        <div class="search-box">
+                            <input type="search" id="ledger-search" class="search-input" placeholder="Buscar por código TX o concepto…" oninput="renderLedgerTable()">
+                            <button type="button" class="btn" onclick="fetchLiveStatus(true)">Actualizar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="ledger-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Código TX</th>
+                                <th scope="col">Fecha y hora (UTC)</th>
+                                <th scope="col">Concepto</th>
+                                <th scope="col" style="text-align: right;">Monto</th>
+                                <th scope="col">Versión app</th>
+                                <th scope="col" class="col-schema-cell">Esquema BD</th>
+                                <th scope="col">Hash de auditoría</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-tbody">
+                            <!-- Renderizado dinámico por JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tarjetas apiladas para móvil (<768px) -->
+                <div class="mobile-ledger-cards" id="mobile-ledger-cards"></div>
+
+                <div class="ledger-footer">
+                    <span id="ledger-showing-text" class="tnum">Mostrando registros recientes persistidos en PVC</span>
+                    <span class="mono">SQLite WAL · ACID Synchronous</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: RESUMEN EJECUTIVO (B7) -->
+        <section class="executive-view" id="view-ejecutivo" aria-label="Resumen ejecutivo del proyecto">
+            <div class="hero-card">
+                <div class="hero-title-row">
+                    <h2 class="hero-title">CoreLedger Cloud-Native Platform</h2>
+                    <span class="version-pill">Arquitectura & Valor de Negocio</span>
+                </div>
+                <p class="hero-desc" style="max-width: 960px;">
+                    Plataforma contable transaccional que opera con <strong>SQLite sobre un volumen persistente PVC (ReadWriteOnce)</strong> en Kubernetes. Emplea deliberadamente la estrategia de despliegue <strong>Recreate</strong> para garantizar que jamás existan escritores concurrentes de distintas versiones corrompiendo el archivo físico de base de datos durante migraciones estructurales de esquema.
+                </p>
+
+                <div class="exec-metrics-row">
+                    <div class="exec-metric-card">
+                        <span class="exec-metric-num tnum" id="exec-cut-val">~3.5 s</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Corte medido en transición</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">Terminación total de v1 antes de iniciar v2</span>
+                    </div>
+                    <div class="exec-metric-card">
+                        <span class="exec-metric-num tnum">12</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Paneles en Grafana</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">Métricas RED, USE, PVC y FinOps</span>
+                    </div>
+                    <div class="exec-metric-card">
+                        <span class="exec-metric-num tnum">5</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Alertas declarativas</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">PrometheusRule hacia Alertmanager</span>
+                    </div>
+                    <div class="exec-metric-card">
+                        <span class="exec-metric-num tnum">$6.85 USD</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Costo base mensual estimado</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">Ahorro >10x frente a clúster SQL distribuido</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h3 class="section-title">Comparativa Arquitectónica: RollingUpdate vs Recreate</h3>
+                        <p class="section-subtitle">Justificación técnica del patrón de despliegue para motores con bloqueo exclusivo en disco.</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="ledger-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Dimensión</th>
+                                <th scope="col">Riesgo con RollingUpdate</th>
+                                <th scope="col">Solución con Recreate (CoreLedger)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 600;">Integridad contable</td>
+                                <td style="color: var(--status-danger);">Réplicas v1 (8 cols) y v2 (11 cols) escribiendo a la vez sobre el mismo archivo (SQLITE_BUSY / corrupción).</td>
+                                <td style="color: var(--status-success);">Terminación total de v1 antes de iniciar v2 con bloqueo exclusivo <code class="mono">BEGIN IMMEDIATE</code>.</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Visibilidad del corte</td>
+                                <td style="color: var(--text-secondary);">Errores 500 intermitentes y silenciosos por colisión de esquema.</td>
+                                <td style="color: var(--text-primary);">Ventana programada y cronometrada (3 a 8 segundos) con alerta automática en Prometheus.</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Costo de infraestructura</td>
+                                <td style="color: var(--text-secondary);">Exige un clúster de base de datos distribuido externo (>10x costo mensual).</td>
+                                <td style="color: var(--brand-cyan);">~$6.85 USD/mes operando SQLite en PVC ReadWriteOnce con garantías ACID completas.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">Cadena de Pilares de Ingeniería</h3>
+                </div>
+                <div class="exec-pillars">
+                    <div class="exec-pillar">
+                        <span class="mono" style="color: var(--brand-cyan); font-size: 12px;">1. PERSISTENCIA</span>
+                        <strong>Integridad ACID</strong>
+                        <span style="font-size: 12px; color: var(--text-secondary);">SQLite en modo WAL + PVC 1 GiB ReadWriteOnce.</span>
+                    </div>
+                    <div class="exec-pillar">
+                        <span class="mono" style="color: var(--brand-cyan); font-size: 12px;">2. DESPLIEGUE</span>
+                        <strong>Estrategia Recreate</strong>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Transición determinista de v1.0.0 a v2.0.0 sin colisiones.</span>
+                    </div>
+                    <div class="exec-pillar">
+                        <span class="mono" style="color: var(--brand-cyan); font-size: 12px;">3. OBSERVABILIDAD</span>
+                        <strong>Telemetría RED y USE</strong>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Prometheus (5s scrape), Grafana (12 paneles) y pila ELK.</span>
+                    </div>
+                    <div class="exec-pillar">
+                        <span class="mono" style="color: var(--brand-cyan); font-size: 12px;">4. EFICIENCIA</span>
+                        <strong>Gobierno FinOps</strong>
+                        <span style="font-size: 12px; color: var(--text-secondary);">HPA (2–6 réplicas), NetworkPolicies y control de costos.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Nueva Transacción en PVC -->
+    <div class="modal-backdrop" id="tx-modal" role="dialog" aria-modal="true" aria-labelledby="modal-tx-title">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modal-tx-title" style="font-size: 18px; font-weight: 600;">Registrar Nueva Transacción en PVC</h3>
+                <button type="button" class="icon-btn-copy" onclick="closeTxModal()" aria-label="Cerrar modal">✕</button>
+            </div>
+            <form onsubmit="submitCustomTransaction(event)" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                <div class="form-group">
+                    <label class="form-label" for="input-tx-concept">Concepto contable</label>
+                    <input type="text" id="input-tx-concept" class="form-input" value="Liquidación de orden corporativa" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-tx-amount">Monto (USD)</label>
+                    <input type="number" id="input-tx-amount" class="form-input tnum" step="0.01" min="0.01" value="250.00" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2);">
+                    <button type="button" class="btn" onclick="closeTxModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-tx">Registrar en SQLite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Panel Lateral (Drawer) para SSO/MFA y Comparación de Esquemas -->
+    <div class="drawer-backdrop" id="side-drawer" onclick="if(event.target===this) closeDrawer()">
+        <div class="drawer-panel" role="dialog" aria-modal="true">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-3);">
+                <h3 id="drawer-title" style="font-size: 18px; font-weight: 600;">Detalle</h3>
+                <button type="button" class="btn" onclick="closeDrawer()">Cerrar</button>
+            </div>
+            <div id="drawer-body" style="display: flex; flex-direction: column; gap: var(--space-4);"></div>
+        </div>
+    </div>
+
+    <!-- Contenedor de Toasts -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- 7. Pie de Página -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <span>CoreLedger Cloud-Native · Estrategia Recreate · Plataformas II · Universidad</span>
+            <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <span class="mono" id="footer-version">__APP_VERSION__</span>
+                <button type="button" class="link-btn-inline" onclick="switchMainView('ejecutivo')">Resumen ejecutivo</button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Estado en cliente
+        let allTransactions = __INITIAL_TRANSACTIONS_JSON__;
+        let currentAppVersion = "__APP_VERSION__";
+        let currentFilterVersion = "ALL";
+        let autoRefreshTimer = null;
+        let isPaused = false;
+        let lastSuccessTimestamp = Date.now();
+        let downtimeStartTimestamp = null;
+        let downtimeTickTimer = null;
+        let lastMeasuredCutSeconds = 3.47;
+        let lastInsertedTxCode = null;
+
+        function formatPodMiddleEllipsis(name) {
+            if (!name || name.length <= 26) return name;
+            return name.slice(0, 18) + "…" + name.slice(-6);
+        }
+
+        function formatDuration(sec) {
+            sec = Math.max(0, parseInt(sec || 0, 10));
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            if (m === 0) return s + " s";
+            return m + " min " + s + " s";
+        }
+
+        function formatUtcDate(isoStr) {
+            if (!isoStr) return "—";
+            try {
+                const d = new Date(isoStr);
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+            } catch (e) {
+                return isoStr.slice(0, 19).replace('T', ' ');
+            }
+        }
+
+        function formatHashTruncated(hash) {
+            if (!hash || hash === "MIGRATED_FROM_V1" || hash.startsWith("N/A")) {
+                return { display: "—", full: hash || "Sin firma de auditoría en esquema v1", copyable: false };
+            }
+            if (hash.length > 12) {
+                return { display: hash.slice(0, 8) + "…" + hash.slice(-4), full: hash, copyable: true };
+            }
+            return { display: hash, full: hash, copyable: true };
+        }
+
+        function copyText(text, btnEl) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copiado al portapapeles", text, "info");
+                if (btnEl) {
+                    const orig = btnEl.innerHTML;
+                    btnEl.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--status-success)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    setTimeout(() => { btnEl.innerHTML = orig; }, 1500);
+                }
+            });
+        }
+
+        function showToast(title, message, type = "info", linkUrl = null, linkLabel = null) {
+            const container = document.getElementById("toast-container");
+            const el = document.createElement("div");
+            el.className = `toast toast-${type}`;
+            let html = `<div style="font-weight: 600; font-size: 13px; color: var(--text-primary);">${title}</div>`;
+            if (message) {
+                html += `<div style="font-size: 12px; color: var(--text-secondary);">${message}</div>`;
+            }
+            if (linkUrl && linkLabel) {
+                html += `<a href="${linkUrl}" target="_blank" rel="noopener" style="font-size: 12px; color: var(--brand-cyan); margin-top: 4px; text-decoration: underline;">${linkLabel} →</a>`;
+            }
+            el.innerHTML = html;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = "0";
+                setTimeout(() => el.remove(), 200);
+            }, 4200);
+        }
+
+        function switchMainView(view) {
+            const opView = document.getElementById("view-operativo");
+            const exView = document.getElementById("view-ejecutivo");
+            const btnOp = document.getElementById("tab-btn-operativo");
+            const btnEx = document.getElementById("tab-btn-ejecutivo");
+
+            if (view === "ejecutivo") {
+                opView.style.display = "none";
+                exView.classList.add("active");
+                btnOp.classList.remove("active-tab");
+                btnEx.classList.add("active-tab");
+            } else {
+                opView.style.display = "flex";
+                exView.classList.remove("active");
+                btnEx.classList.remove("active-tab");
+                btnOp.classList.add("active-tab");
+            }
+        }
+
+        function setVersionFilter(ver, btnEl) {
+            currentFilterVersion = ver;
+            document.querySelectorAll(".seg-btn").forEach(b => b.classList.remove("active"));
+            if (btnEl) btnEl.classList.add("active");
+            renderLedgerTable();
+        }
+
+        function renderLedgerTable() {
+            const tbody = document.getElementById("ledger-tbody");
+            const mobileContainer = document.getElementById("mobile-ledger-cards");
+            const searchVal = (document.getElementById("ledger-search").value || "").toLowerCase().trim();
+
+            const filtered = allTransactions.filter(tx => {
+                const matchVer = currentFilterVersion === "ALL" || tx.app_version === currentFilterVersion;
+                const matchSearch = !searchVal ||
+                    (tx.tx_code && tx.tx_code.toLowerCase().includes(searchVal)) ||
+                    (tx.concept && tx.concept.toLowerCase().includes(searchVal));
+                return matchVer && matchSearch;
+            });
+
+            document.getElementById("ledger-showing-text").textContent =
+                `Mostrando ${filtered.length} de ${allTransactions.length} transacciones cargadas`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
+                            No hay transacciones que coincidan con el filtro seleccionado.
+                        </td>
+                    </tr>`;
+                mobileContainer.innerHTML = `<div style="text-align:center; padding: 24px; color: var(--text-muted);">Sin transacciones para mostrar.</div>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(tx => {
+                const isV2 = (tx.app_version || "").startsWith("v2");
+                const verClass = isV2 ? "v2" : "v1";
+                const hInfo = formatHashTruncated(tx.audit_hash);
+                const highlightClass = (tx.tx_code === lastInsertedTxCode) ? "row-highlight" : "";
+                const amountFmt = Number(tx.amount_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                const copyBtnHtml = hInfo.copyable
+                    ? `<button type="button" class="icon-btn-copy" onclick="copyText('${hInfo.full}', this)" title="Copiar hash: ${hInfo.full}">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       </button>`
+                    : "";
+
+                return `
+                    <tr class="${highlightClass}">
+                        <td class="col-tx">${tx.tx_code}</td>
+                        <td class="col-date tnum" title="${tx.created_at || ''}">${formatUtcDate(tx.created_at)}</td>
+                        <td class="col-concept" title="${tx.concept || ''}">${tx.concept || ''}</td>
+                        <td class="col-amount tnum">$${amountFmt}<span class="currency-unit">${tx.currency || 'USD'}</span></td>
+                        <td><span class="ver-badge ${verClass}">${tx.app_version}</span></td>
+                        <td class="col-schema-cell"><span class="schema-chip">${tx.schema_version}</span></td>
+                        <td>
+                            <span class="hash-cell" title="${hInfo.full}">
+                                <span>${hInfo.display}</span>
+                                ${copyBtnHtml}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            mobileContainer.innerHTML = filtered.map(tx => {
+                const isV2 = (tx.app_version || "").startsWith("v2");
+                const verClass = isV2 ? "v2" : "v1";
+                const amountFmt = Number(tx.amount_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return `
+                    <div class="mobile-tx-card">
+                        <div class="mobile-tx-top">
+                            <span class="col-tx">${tx.tx_code}</span>
+                            <span class="col-amount tnum">$${amountFmt} USD</span>
+                        </div>
+                        <div style="color: var(--text-primary); font-size: 13px;">${tx.concept}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
+                            <span class="mono">${formatUtcDate(tx.created_at)}</span>
+                            <span class="ver-badge ${verClass}">${tx.app_version}</span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function applyVersionTheme(version, activeSchema, colCount) {
+            const root = document.documentElement;
+            const isV2 = (version || "").startsWith("v2");
+            if (isV2) {
+                root.style.setProperty("--accent", "#22C55E");
+                root.style.setProperty("--accent-bg", "rgba(34, 197, 94, 0.12)");
+                root.style.setProperty("--accent-border", "rgba(34, 197, 94, 0.32)");
+                document.getElementById("hero-version-text").textContent = `${version} · Esquema migrado`;
+                setTimelineStateForVersion("v2");
+            } else {
+                root.style.setProperty("--accent", "#3B82F6");
+                root.style.setProperty("--accent-bg", "rgba(59, 130, 246, 0.15)");
+                root.style.setProperty("--accent-border", "rgba(59, 130, 246, 0.35)");
+                document.getElementById("hero-version-text").textContent = `${version} · Base estable`;
+                setTimelineStateForVersion("v1");
+            }
+            document.getElementById("footer-version").textContent = version;
+            document.getElementById("chip-schema").textContent = `BD: ${activeSchema} (${colCount} cols)`;
+
+            const mismatchEl = document.getElementById("chip-schema-mismatch");
+            if (!isV2 && activeSchema === "schema_v2_migrated") {
+                mismatchEl.style.display = "inline-flex";
+            } else {
+                mismatchEl.style.display = "none";
+            }
+        }
+
+        function setTimelineStateForVersion(verMode) {
+            const steps = [1, 2, 3, 4, 5].map(n => document.getElementById(`tl-step-${n}`));
+            steps.forEach(s => s.className = "timeline-step");
+            if (verMode === "v2") {
+                steps.forEach(s => s.classList.add("step-completed"));
+            } else if (verMode === "cut") {
+                steps[0].classList.add("step-completed");
+                steps[1].classList.add("step-completed");
+                steps[2].classList.add("step-cut-active");
+            } else {
+                steps[0].classList.add("step-active");
+            }
+        }
+
+        function enterDowntimeState() {
+            if (!downtimeStartTimestamp) {
+                downtimeStartTimestamp = Date.now();
+                const banner = document.getElementById("downtime-banner");
+                banner.className = "downtime-banner active-danger";
+                document.getElementById("downtime-banner-msg").textContent =
+                    "Servicio no disponible. Cambio de versión Recreate en curso, reconectando…";
+                document.getElementById("kpi-grid").classList.add("stale-overlay");
+                document.getElementById("nav-status-dot").className = "status-dot offline";
+                document.getElementById("nav-status-text").textContent = "Servicio no disponible";
+                document.getElementById("kpi-deploy-pill").className = "status-pill pill-danger";
+                document.getElementById("kpi-deploy-state").textContent = "NO DISPONIBLE";
+                setTimelineStateForVersion("cut");
+
+                if (downtimeTickTimer) clearInterval(downtimeTickTimer);
+                downtimeTickTimer = setInterval(() => {
+                    if (downtimeStartTimestamp) {
+                        const elapsed = ((Date.now() - downtimeStartTimestamp) / 1000).toFixed(1);
+                        document.getElementById("downtime-banner-timer").textContent = `${elapsed} s`;
+                    }
+                }, 100);
+            }
+        }
+
+        function exitDowntimeState(newVersion) {
+            if (downtimeStartTimestamp) {
+                const cutSec = ((Date.now() - downtimeStartTimestamp) / 1000).toFixed(2);
+                lastMeasuredCutSeconds = cutSec;
+                downtimeStartTimestamp = null;
+                if (downtimeTickTimer) clearInterval(downtimeTickTimer);
+
+                document.getElementById("measured-cut-text").textContent = `Corte medido: ${cutSec} s`;
+                document.getElementById("exec-cut-val").textContent = `${cutSec} s`;
+
+                const banner = document.getElementById("downtime-banner");
+                banner.className = "downtime-banner active-recovered";
+                document.getElementById("downtime-banner-msg").textContent =
+                    `Servicio restablecido (${newVersion}). Corte medido: ${cutSec} s`;
+                document.getElementById("downtime-banner-timer").textContent = "OK";
+
+                setTimeout(() => {
+                    if (!downtimeStartTimestamp) {
+                        banner.className = "downtime-banner";
+                    }
+                }, 4000);
+            }
+
+            document.getElementById("kpi-grid").classList.remove("stale-overlay");
+            document.getElementById("nav-status-dot").className = "status-dot pulse";
+            document.getElementById("nav-status-text").textContent = "Servicio operativo";
+            document.getElementById("kpi-deploy-pill").className = "status-pill pill-success";
+            document.getElementById("kpi-deploy-state").textContent = "READY";
+        }
+
+        async function fetchLiveStatus(manual = false) {
+            try {
+                const [infoRes, txRes] = await Promise.all([
+                    fetch("/api/info", { cache: "no-store" }),
+                    fetch("/api/transactions?limit=15", { cache: "no-store" })
+                ]);
+
+                if (!infoRes.ok || !txRes.ok) {
+                    throw new Error("HTTP status " + infoRes.status);
+                }
+
+                const info = await infoRes.json();
+                const txData = await txRes.json();
+
+                exitDowntimeState(info.version);
+
+                currentAppVersion = info.version;
+                allTransactions = txData.recent_transactions || [];
+                const colCount = txData.column_count || 11;
+                const activeSchema = txData.active_schema || info.schema_version;
+
+                applyVersionTheme(info.version, activeSchema, colCount);
+
+                // Actualizar Tarjetas KPI
+                const podShort = formatPodMiddleEllipsis(info.pod_name);
+                const podEl = document.getElementById("kpi-pod-short");
+                podEl.textContent = podShort;
+                podEl.title = info.pod_name;
+                document.getElementById("btn-copy-pod").setAttribute("onclick", `copyText('${info.pod_name}', this)`);
+
+                document.getElementById("kpi-node-ip").textContent = `${info.node_name} · ${info.pod_ip}`;
+                document.getElementById("kpi-uptime").textContent = formatDuration(info.uptime_seconds);
+
+                const dbSizeKb = ((txData.database_size_bytes || 24576) / 1024).toFixed(1);
+                document.getElementById("kpi-db-size").textContent = `${dbSizeKb} KB`;
+                document.getElementById("kpi-journal-mode").textContent = (txData.journal_mode || "wal").toUpperCase();
+
+                document.getElementById("kpi-tx-count").textContent = info.records_persisted;
+                document.getElementById("ledger-total-count").textContent = info.records_persisted;
+                const volFmt = Number(info.total_volume_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById("kpi-tx-volume").textContent = `$${volFmt} USD`;
+                document.getElementById("kpi-req-counter").textContent = info.persistent_counter;
+
+                document.getElementById("kpi-schema-name").textContent = activeSchema;
+                document.getElementById("kpi-col-count").textContent = `${colCount} columnas · Serializada`;
+
+                lastSuccessTimestamp = Date.now();
+                document.getElementById("monitor-last-update").textContent = "Última actualización: hace instantes";
+
+                renderLedgerTable();
+                if (manual) {
+                    showToast("Estado sincronizado", `Pod activo: ${podShort} (${info.version})`, "success");
+                }
+            } catch (err) {
+                enterDowntimeState();
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const btnText = document.getElementById("btn-pause-text");
+            const statusLabel = document.getElementById("monitor-status-label");
+            const dot = document.getElementById("monitor-dot");
+            const icon = document.getElementById("icon-pause-play");
+
+            if (!isPaused) {
+                isPaused = true;
+                if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+                btnText.textContent = "Reanudar auto-refresco";
+                statusLabel.textContent = "Auto-refresco en pausa";
+                dot.className = "status-dot paused";
+                icon.innerHTML = `<polygon points="5 3 19 12 5 21 5 3"/>`;
+            } else {
+                isPaused = false;
+                autoRefreshTimer = setInterval(() => fetchLiveStatus(false), 3000);
+                btnText.textContent = "Pausar auto-refresco";
+                statusLabel.textContent = "Monitoreo en vivo activo · refresco cada 3 s";
+                dot.className = "status-dot pulse";
+                icon.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
+                fetchLiveStatus(false);
+            }
+        }
+
+        function openTxModal() {
+            document.getElementById("tx-modal").classList.add("open");
+            document.getElementById("input-tx-concept").focus();
+        }
+
+        function closeTxModal() {
+            document.getElementById("tx-modal").classList.remove("open");
+        }
+
+        async function submitCustomTransaction(e) {
+            e.preventDefault();
+            const concept = document.getElementById("input-tx-concept").value.trim();
+            const amount = parseFloat(document.getElementById("input-tx-amount").value);
+            const btn = document.getElementById("btn-submit-tx");
+            btn.disabled = true;
+            btn.textContent = "Registrando…";
+
+            try {
+                const res = await fetch("/api/transactions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ concept, amount_usd: amount, currency: "USD" })
+                });
+                const data = await res.json();
+                closeTxModal();
+                lastInsertedTxCode = data.tx_code;
+                showToast(`Transacción ${data.tx_code} registrada`, `${concept} · $${amount.toFixed(2)} USD`, "success");
+                await fetchLiveStatus(false);
+            } catch (err) {
+                showToast("Error al registrar transacción", err.message, "danger");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Registrar en SQLite";
+            }
+        }
+
+        async function createQuickTransaction(btnEl) {
+            const concepts = [
+                "Liquidación de orden institucional ACH",
+                "Conciliación de bóveda interbancaria",
+                "Asiento de reserva operativa en PVC",
+                "Pago de infraestructura Cloud-Native",
+                "Auditoría criptográfica de libro mayor"
+            ];
+            const concept = concepts[Math.floor(Math.random() * concepts.length)];
+            const amount = Math.round((75 + Math.random() * 850) * 100) / 100;
+            const origHtml = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.textContent = "Ejecutando…";
+
+            try {
+                const res = await fetch("/api/transactions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ concept, amount_usd: amount, currency: "USD" })
+                });
+                const data = await res.json();
+                lastInsertedTxCode = data.tx_code;
+                showToast(`Transacción ${data.tx_code} registrada`, `${concept} ($${amount.toFixed(2)} USD)`, "success");
+                await fetchLiveStatus(false);
+            } catch (err) {
+                showToast("Error en transacción rápida", err.message, "danger");
+            } finally {
+                btnEl.disabled = false;
+                btnEl.innerHTML = origHtml;
+            }
+        }
+
+        async function runSsoMfaFlow() {
+            const drawer = document.getElementById("side-drawer");
+            const title = document.getElementById("drawer-title");
+            const body = document.getElementById("drawer-body");
+            title.textContent = "Verificación de Identidad SSO / OIDC + MFA";
+            body.innerHTML = `<div style="color: var(--text-secondary);">Ejecutando flujo de autenticación en 2 pasos…</div>`;
+            drawer.classList.add("open");
+
+            try {
+                const tokRes = await fetch("/api/auth/token", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: "esteban.guarin@universidad.edu.co", mfa_code: "482910" })
+                });
+                const tokData = await tokRes.json();
+
+                const verRes = await fetch("/api/auth/verify", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + tokData.access_token }
+                });
+                const verData = await verRes.json();
+
+                const fullJson = JSON.stringify({ step_1_token_issuance: tokData, step_2_token_verification: verData }, null, 2);
+
+                body.innerHTML = `
+                    <div class="timeline-step step-completed">
+                        <div class="step-top">
+                            <div class="step-circle">✓</div>
+                            <div class="step-title">1. Emitir token OIDC + TOTP MFA</div>
+                        </div>
+                        <div class="step-desc">POST /api/auth/token · Sujeto: ${tokData.subject}</div>
+                    </div>
+                    <div class="timeline-step step-completed">
+                        <div class="step-top">
+                            <div class="step-circle">✓</div>
+                            <div class="step-title">2. Verificar firma Bearer y Rol RBAC</div>
+                        </div>
+                        <div class="step-desc">POST /api/auth/verify · Rol: ${verData.role}</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">RESPUESTA JSON DE AUDITORÍA</span>
+                        <button type="button" class="btn" onclick="copyText(document.getElementById('sso-json-pre').textContent, this)">Copiar JSON</button>
+                    </div>
+                    <pre class="code-block" id="sso-json-pre">${fullJson}</pre>
+                `;
+                showToast("Flujo SSO / MFA validado", "Token emitido y verificado satisfactoriamente", "success");
+            } catch (err) {
+                body.innerHTML = `<div style="color: var(--status-danger);">Error en flujo SSO: ${err.message}</div>`;
+            }
+        }
+
+        function openSchemaDrawer() {
+            const drawer = document.getElementById("side-drawer");
+            const title = document.getElementById("drawer-title");
+            const body = document.getElementById("drawer-body");
+            title.textContent = "Comparativa de Esquema: v1 (8 cols) vs v2 (11 cols)";
+            body.innerHTML = `
+                <p style="color: var(--text-secondary); font-size: 13px;">
+                    Durante el despliegue de <code class="mono">v2.0.0</code>, el contenedor adquiere un bloqueo exclusivo <code class="mono">BEGIN IMMEDIATE</code> sobre <code class="mono">/data/recreate_platform.db</code> y añade 3 columnas de auditoría fiscal sin perder los registros históricos de v1.
+                </p>
+                <div class="control-group">
+                    <span class="control-group-label">Columnas Base (v1.0.0 · 8 columnas)</span>
+                    <div class="code-block">id, tx_code, concept, amount_usd, app_version, schema_version, pod_origin, created_at</div>
+                </div>
+                <div class="control-group" style="border-color: var(--status-success-border);">
+                    <span class="control-group-label" style="color: var(--status-success);">Columnas Nuevas Añadidas en v2.0.0 (+3 columnas = 11)</span>
+                    <div class="code-block" style="color: var(--status-success);">+ currency TEXT DEFAULT 'USD'\n+ tax_rate REAL DEFAULT 0.19\n+ audit_hash TEXT (SHA-256)</div>
+                </div>
+            `;
+            drawer.classList.add("open");
+        }
+
+        function closeDrawer() {
+            document.getElementById("side-drawer").classList.remove("open");
+        }
+
+        async function triggerCpuLoad(btnEl) {
+            const orig = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.textContent = "Ejecutando (1.5 s)…";
+            showToast("Carga de CPU en curso (1.5 s)", "Generando estrés sintético para métrica USE y HPA", "warning", "http://localhost:3000/d/coreledger-recreate-red-use", "Ver HPA en Grafana");
+
+            try {
+                await fetch("/simulate/cpu-load?seconds=1.5");
+                showToast("Ciclo de CPU completado", "Revisa la saturación USE en el tablero de Grafana", "success", "http://localhost:3000/d/coreledger-recreate-red-use", "Abrir Grafana");
+            } catch (err) {
+                showToast("Error en simulación CPU", err.message, "danger");
+            } finally {
+                btnEl.disabled = false;
+                btnEl.innerHTML = orig;
+            }
+        }
+
+        async function triggerHttp500(btnEl) {
+            const orig = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.textContent = "Simulando…";
+            try {
+                await fetch("/simulate/error?status_code=500");
+                showToast("Error HTTP 500 registrado", "Incrementada métrica RED de errores. Revisa Alertmanager.", "danger", "http://localhost:9093", "Abrir Alertmanager");
+            } catch (err) {
+                showToast("Error de red al simular HTTP 500", err.message, "danger");
+            } finally {
+                btnEl.disabled = false;
+                btnEl.innerHTML = orig;
+            }
+        }
+
+        function simulateRecreateCycleDemo() {
+            const steps = [1, 2, 3, 4, 5].map(n => document.getElementById(`tl-step-${n}`));
+            const btn = document.getElementById("btn-sim-cycle");
+            btn.disabled = true;
+
+            // Paso 1 -> Paso 2
+            steps.forEach(s => s.className = "timeline-step");
+            steps[0].classList.add("step-completed");
+            steps[1].classList.add("step-active");
+            showToast("Ciclo Recreate: Paso 2", "Terminando réplicas de v1.0.0 (SIGTERM)…", "info");
+
+            setTimeout(() => {
+                // Paso 3: Ventana de corte
+                enterDowntimeState();
+            }, 2500);
+
+            setTimeout(() => {
+                // Paso 4: Iniciando v2 y migrando esquema
+                steps.forEach(s => s.className = "timeline-step");
+                steps[0].classList.add("step-completed");
+                steps[1].classList.add("step-completed");
+                steps[2].classList.add("step-completed");
+                steps[3].classList.add("step-active");
+                document.getElementById("downtime-banner-msg").textContent =
+                    "Iniciando pods nuevos y ejecutando migración exclusiva en PVC…";
+            }, 6500);
+
+            setTimeout(() => {
+                // Paso 5: Completado
+                exitDowntimeState(currentAppVersion);
+                steps.forEach(s => s.className = "timeline-step step-completed");
+                btn.disabled = false;
+            }, 9500);
+        }
+
+        // Inicialización al cargar la página
+        renderLedgerTable();
+        autoRefreshTimer = setInterval(() => fetchLiveStatus(false), 3000);
+    </script>
+</body>
+</html>

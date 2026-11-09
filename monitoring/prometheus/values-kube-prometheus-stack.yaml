@@ -19,9 +19,19 @@ prometheus:
         memory: 1536Mi
 
 grafana:
-  adminPassword: "admin"
+  # Credencial exclusiva para entorno local de laboratorio (Minikube)
+  adminPassword: "admin123"
   service:
     type: ClusterIP
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider:
+        allowUiUpdates: true
   resources:
     requests:
       cpu: 100m

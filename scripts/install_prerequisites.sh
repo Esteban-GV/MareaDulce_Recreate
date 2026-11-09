@@ -8,7 +8,7 @@ set -euo pipefail
 
 echo "=== Verificando dependencias del sistema ==="
 
-PACKAGES=(docker minikube kubectl helm)
+PACKAGES=(docker docker-buildx minikube kubectl helm)
 MISSING_PKGS=()
 
 for pkg in "${PACKAGES[@]}"; do

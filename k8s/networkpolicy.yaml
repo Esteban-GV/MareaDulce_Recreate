@@ -13,13 +13,16 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # 1. Tráfico HTTP externo entrante hacia la aplicación
+    # 1. Tráfico HTTP entrante exclusivamente desde el controlador NGINX Ingress
     - from:
-        - namespaceSelector: {} # Ingress controller o cualquier namespace interno
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector: {}
       ports:
         - protocol: TCP
           port: 8000
-    # 2. Recolección de métricas por Prometheus
+    # 2. Recolección de métricas por Prometheus desde el namespace monitoring
     - from:
         - namespaceSelector:
             matchLabels:

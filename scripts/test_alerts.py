@@ -7,10 +7,34 @@ Autores: Esteban Guarín Valencia, Juan José Arias Gallego
 
 import sys
 import time
+import socket
+import subprocess
 import argparse
 import urllib.request
 import urllib.error
 from datetime import datetime
+
+
+def resolve_base_url(target_url: str, host_header: str) -> tuple[str, str]:
+    clean_url = target_url.rstrip("/")
+    if "://recreate.local" in clean_url:
+        try:
+            socket.gethostbyname("recreate.local")
+        except socket.gaierror:
+            ingress_ip = "192.168.49.2"
+            try:
+                out = subprocess.check_output(
+                    ["kubectl", "get", "ingress", "recreate-app-ingress", "-n", "recreate-lab", "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}"],
+                    text=True,
+                    timeout=3,
+                ).strip()
+                if out:
+                    ingress_ip = out
+            except Exception:
+                pass
+            clean_url = clean_url.replace("://recreate.local", f"://{ingress_ip}")
+            host_header = "recreate.local"
+    return clean_url, (host_header or "recreate.local")
 
 
 def trigger_error_rate_alarm(target_url: str, request_count: int, host_header: str = "recreate.local"):
@@ -41,7 +65,7 @@ def trigger_error_rate_alarm(target_url: str, request_count: int, host_header: s
         time.sleep(0.05)
 
     print(f"Resultado: {errors_triggered} errores forzados.")
-    print("Verifique en Grafana / Prometheus Alertmanager la activación de la alerta 'HighHttpErrorRate'.")
+    print("Verifique en Grafana / Prometheus Alertmanager la activación de la alerta 'HighHttp5xxErrorRate'.")
 
 
 def trigger_latency_alarm(target_url: str, request_count: int, delay_seconds: float, host_header: str = "recreate.local"):
@@ -66,30 +90,32 @@ def trigger_latency_alarm(target_url: str, request_count: int, delay_seconds: fl
             print(f"  Petición #{i}: Error -> {e}")
         time.sleep(0.1)
 
-    print("Verifique en Grafana / Prometheus Alertmanager la activación de la alerta 'HighHttpLatency'.")
+    print("Verifique en Grafana / Prometheus Alertmanager la activación de la alerta 'HighRequestLatencyP95'.")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Disparador de Alarmas para Observabilidad en Kubernetes")
     parser.add_argument("--url", default="http://recreate.local", help="URL base del Ingress o servicio")
     parser.add_argument("--type", choices=["errors", "latency", "all"], default="all", help="Tipo de alarma a probar")
-    parser.add_argument("--errors-count", type=int, default=50, help="Cantidad de peticiones con error a disparar")
-    parser.add_argument("--latency-count", type=int, default=5, help="Cantidad de peticiones con latencia a disparar")
-    parser.add_argument("--latency-delay", type=float, default=2.0, help="Retardo en segundos por petición lenta")
+    parser.add_argument("--errors-count", type=int, default=40, help="Cantidad de peticiones con error a disparar")
+    parser.add_argument("--latency-count", type=int, default=8, help="Cantidad de peticiones con latencia a disparar")
+    parser.add_argument("--latency-delay", type=float, default=1.5, help="Retardo en segundos por petición lenta")
     parser.add_argument("--host", default="recreate.local", help="Cabecera Host HTTP para Ingress (default: recreate.local)")
     args = parser.parse_args()
 
+    resolved_url, effective_host = resolve_base_url(args.url, args.host)
+
     print("=" * 70)
     print("DISPARADOR DE ALARMAS DE OBSERVABILIDAD")
-    print(f"URL Objetivo: {args.url} (Host: {args.host})")
+    print(f"URL Objetivo: {args.url} -> {resolved_url} (Host: {effective_host})")
     print(f"Fecha/Hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
 
     if args.type in ["errors", "all"]:
-        trigger_error_rate_alarm(args.url, args.errors_count, host_header=args.host)
+        trigger_error_rate_alarm(resolved_url, args.errors_count, host_header=effective_host)
 
     if args.type in ["latency", "all"]:
-        trigger_latency_alarm(args.url, args.latency_count, args.latency_delay, host_header=args.host)
+        trigger_latency_alarm(resolved_url, args.latency_count, args.latency_delay, host_header=effective_host)
 
     print("\n" + "=" * 70)
     print("PRUEBA DE ALARMAS CONCLUIDA")
