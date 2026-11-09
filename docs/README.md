@@ -18,7 +18,8 @@ Los documentos detallan la arquitectura de software, especificaciones de diseño
   - [Infraestructura y Estrategia Recreate](#44-infraestructura-y-estrategia-recreate)
   - [Observabilidad, Telemetría y Logs](#45-observabilidad-telemetría-y-logs)
   - [Valor de Negocio, FinOps y Seguridad](#46-valor-de-negocio-finops-y-seguridad)
-  - [Subdirectorios Especializados](#47-subdirectorios-especializados)
+  - [Calidad, Pruebas y Validación](#47-calidad-pruebas-y-validación)
+  - [Subdirectorios Especializados](#48-subdirectorios-especializados)
 - [Mapa de Navegación Visual](#5-mapa-de-navegación-visual)
 - [Rutas de Lectura Recomendadas](#6-rutas-de-lectura-recomendadas)
 - [Equipo](#7-equipo)
@@ -48,6 +49,7 @@ docs/
 ├── observability-value.md     # 👁️ Valor de la observabilidad de alta resolución ante cortes
 ├── security-value.md          # 🔒 Postura de seguridad y protección de datos en reposo y tránsito
 ├── sso-mfa.md                 # 🔑 Autenticación administrativa con JWT bcrypt y roles
+├── QA.md                      # ✅ Plan de calidad, matriz de pruebas (QA-01 a QA-18) y E2E
 ├── executive-summary.md       # 📑 Resumen ejecutivo global del proyecto
 ├── architecture/              # 🏗️ Diagramas y hoja de ruta de la arquitectura
 │   └── roadmap-and-architecture.md
@@ -110,7 +112,13 @@ docs/
 | [`sso-mfa.md`](sso-mfa.md) | **Control de acceso:** Mecanismos de autenticación para personal administrativo mediante tokens JWT firmados, contraseñas con hash bcrypt y roles protegidos. |
 | [`executive-summary.md`](executive-summary.md) | **Resumen ejecutivo:** Visión global del proyecto, síntesis de la sustentación técnica y evaluación consolidada de resultados. |
 
-### 4.7 Subdirectorios Especializados
+### 4.7 Calidad, Pruebas y Validación
+
+| Documento | Resumen del Contenido |
+|---|---|
+| [`QA.md`](QA.md) | **Plan y matriz de calidad:** Catálogo formal de 18 pruebas (QA-01 a QA-18) que cubre pruebas unitarias en Pytest, compilación Vite, 16 verificaciones de `validate.sh`, benchmark sintético y guion de demostración. |
+
+### 4.8 Subdirectorios Especializados
 
 | Subdirectorio | Contenido y Propósito |
 |---|---|
@@ -154,11 +162,16 @@ flowchart TD
         KC["kubecost.md / kubecost-value.md\n(FinOps y Costos)"]
     end
 
+    subgraph CalidadQA["6. Calidad y Validación"]
+        QA["QA.md\n(Matriz de Pruebas QA-01 a QA-18)"]
+    end
+
     Index --> Operacion
     Index --> DisenoFrontend
     Index --> BackendDatos
     Index --> InfraRecreate
     Index --> ObsFinOps
+    Index --> CalidadQA
 ```
 
 ---

@@ -57,6 +57,7 @@ k8s-recreate-deployment/
 │   ├── observability-value.md # Impacto operativo de la telemetría de alta resolución
 │   ├── security-value.md      # Postura de seguridad y protección de datos
 │   ├── sso-mfa.md             # Control de acceso administrativo con JWT bcrypt
+│   ├── QA.md                  # Plan de calidad, matriz de pruebas (QA-01 a QA-18) y E2E
 │   ├── executive-summary.md   # Resumen ejecutivo global del proyecto
 │   ├── architecture/          # Diagramas y evolución arquitectónica
 │   └── evidence/              # Trazas de validación y telemetría de corte Recreate
