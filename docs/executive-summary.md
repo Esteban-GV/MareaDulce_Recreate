@@ -1,26 +1,27 @@
-# Resumen Ejecutivo — CoreLedger Cloud-Native Platform
+# Resumen Ejecutivo — Marea Dulce Cloud-Native E-Commerce Platform
 
-**CoreLedger Cloud-Native Platform (`k8s-recreate-deployment`)** es una plataforma de registro y liquidación contable diseñada para demostrar cómo operar sistemas transaccionales críticos con restricciones de almacenamiento exclusivo (**SQLite en PVC `ReadWriteOnce`**) sobre **Kubernetes**. Frente al riesgo de corrupción financiera derivado de múltiples escritores concurrentes durante actualizaciones de software, **CoreLedger** implementa de forma deliberada y auditada la estrategia de despliegue **`Recreate`**, combinándola con observabilidad de alta frecuencia (5 segundos), alertas inmediatas, trazabilidad forense con la pila **ELK** y gobierno financiero **FinOps**.
+**Marea Dulce Cloud-Native Platform (`k8s-recreate-deployment`)** es una plataforma de comercio electrónico de pastelería artesanal diseñada para demostrar cómo operar sistemas transaccionales con restricciones de almacenamiento exclusivo (**SQLite en PVC `ReadWriteOnce`**) sobre **Kubernetes**. Frente a la necesidad de garantizar consistencia absoluta en el catálogo, personalización de pedidos y transacciones de clientes durante actualizaciones de software, **Marea Dulce** implementa de forma deliberada y auditada la estrategia de despliegue **`Recreate`**, combinándola con observabilidad de alta frecuencia (5 segundos), alertas inmediatas, trazabilidad forense con la pila **ELK** y gobierno financiero **FinOps con Kubecost**.
 
-## El Problema de Negocio frente a la Solución de Ingeniería
+## El Caso de Negocio de Marea Dulce y la Solución con Recreate
 
-| Dimensión | Riesgo con Despliegue Convencional (`RollingUpdate`) | Solución Implementada en CoreLedger (`Recreate`) |
+| Desafío de la Empresa | Impacto en la Operación | Solución con Estrategia `Recreate` |
 | :--- | :--- | :--- |
-| **Integridad Contable** | Réplicas `v1.0.0` (8 columnas) y `v2.0.0` (11 columnas) escriben simultáneamente sobre el archivo SQLite del PVC, provocando corrupción o pérdida de transacciones. | Terminación garantizada del 100% de réplicas `v1.0.0` antes de iniciar `v2.0.0` y ejecutar la migración `BEGIN IMMEDIATE`. |
-| **Visibilidad del Corte** | Interrupciones no planificadas sin medición exacta del impacto al usuario final. | Ventana de corte programada, acotada y cronometrada en vivo (**~6 a 9 segundos**) con alerta automática en Alertmanager. |
-| **Costo de Infraestructura** | Migrar a clústeres de bases de datos distribuidas multi-nodo eleva el costo mensual en más de 10 veces. | Mantener SQLite sobre PVC RWO con estrategia `Recreate` opera con un costo base de solo **$6.85 USD/mes**. |
+| **Integridad del Catálogo y Pedidos** | Almacenamiento local en SQLite sobre PVC ReadWriteOnce. Dos pods concurrentes provocarían bloqueos de disco o corrupción de pedidos. | Terminación garantizada del 100% de réplicas `v1.0.0` antes de iniciar `v2.0.0`, asegurando un único proceso escritor. |
+| **Migración de Esquema Incompatible** | La versión 2 agrega soporte ampliado de personalización y auditoría en la base de datos. | Migración serializada atómica con `BEGIN IMMEDIATE`, respaldo previo `.backup` y verificación con `integrity_check`. |
+| **Gobernanza del Downtime** | El servicio experimenta una breve interrupción durante el cambio de versión. | Ventana de corte programada, acotada y cronometrada en vivo (**~3.2 segundos**) con alerta automática en Alertmanager y retención de carrito en frontend. |
+| **Eficiencia de Costos** | Mantener clústeres de bases de datos distribuidas sobredimensionadas es inviable para un e-commerce artesanal. | Arquitectura de réplica única sobre almacenamiento en bloque con un costo base estimado de solo **$6.85 USD/mes**. |
 
 ## Pilares Tecnológicos y Resultados Alcanzados
 
 ```mermaid
 flowchart LR
-    A["Integridad ACID\nSQLite WAL + PVC 1Gi RWO\n(0% Corrupción de Datos)"] --> B["Estrategia Recreate\nv1.0.0 -> v2.0.0\n(Downtime Medido: ~7.2s)"]
-    B --> C["Observabilidad RED y USE\nPrometheus + Grafana + ELK\n(12 Paneles y 5 Alertas)"]
-    C --> D["Gobierno FinOps\nCómputo + PVC Auditados\n($6.85 - $20.36 USD/mes)"]
+    A["Integridad Transaccional\nSQLite WAL + PVC 1Gi RWO\n(0% Corrupción de Datos)"] --> B["Estrategia Recreate\nv1.0.0 -> v2.0.0\n(Downtime Medido: ~3.2s)"]
+    B --> C["Observabilidad RED y USE\nPrometheus + Grafana + ELK\n(12 Paneles y Reglas de Alerta)"]
+    C --> D["Gobierno FinOps\nKubecost + Eficiencia de Cómputo\n($6.85 USD/mes)"]
 ```
 
 ## Justificación Empresarial de la Arquitectura
 
-- **Prioridad de la exactitud financiera sobre la disponibilidad continua:** En sistemas de liquidación contable, unos segundos de ventana de mantenimiento programada son preferibles a un solo registro financiero corrupto o duplicado.
-- **Transparencia operativa total:** El equipo técnico y el negocio disponen de telemetría con resolución de 5 segundos en Grafana, alertas instantáneas en Alertmanager y auditoría histórica de registros en Kibana.
-- **Automatización reproducible:** Mediante la suite de scripts (`start-all.sh`, `validate.sh`, `benchmark.sh`, `traffic_generator.py`), el despliegue completo y su validación de 16 puntos se ejecutan de manera determinista en minutos.
+- **Prioridad de la integridad transaccional sobre la disponibilidad continua:** En un comercio de pastelería personalizada, unos pocos segundos de ventana de actualización programada son preferibles a la pérdida o corrupción de un pedido de un cliente.
+- **Transparencia operativa total:** El equipo técnico y los administradores disponen de telemetría de 5 segundos en Grafana, alertas instantáneas en Alertmanager y auditoría de eventos en Kibana.
+- **Automatización reproducible:** Mediante la suite de scripts (`start.sh`, `rollout_v2.sh`, `reset_v1.sh`, `validate.sh`, `traffic_generator.py`), el ciclo de despliegue Recreate y su validación se ejecutan de manera determinista.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generador de Tráfico Continuo y Medidor de Indisponibilidad (Downtime).
-Proyecto: k8s-recreate-deployment (Plataformas II)
+Proyecto: Marea Dulce (Kubernetes Recreate Stack)
 Autores: Esteban Guarín Valencia, Juan José Arias Gallego
 """
 
@@ -12,23 +12,23 @@ import subprocess
 import argparse
 import urllib.request
 import urllib.error
+import json
 from datetime import datetime
 
 
 def resolve_target_url(target_url: str, host_header: str) -> tuple[str, str]:
     clean_url = target_url.rstrip("/")
-    if not clean_url.endswith("/api/info"):
-        clean_url = f"{clean_url}/api/info"
+    if not clean_url.endswith("/api/v1/version") and not clean_url.endswith("/healthz"):
+        clean_url = f"{clean_url}/api/v1/version"
 
     if "://recreate.local" in clean_url:
         try:
             socket.gethostbyname("recreate.local")
         except socket.gaierror:
-            # Si /etc/hosts no tiene recreate.local, resolver IP del Ingress automaticamente
             ingress_ip = "192.168.49.2"
             try:
                 out = subprocess.check_output(
-                    ["kubectl", "get", "ingress", "recreate-app-ingress", "-n", "recreate-lab", "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}"],
+                    ["kubectl", "get", "ingress", "-n", "recreate-lab", "-o", "jsonpath={.items[0].status.loadBalancer.ingress[0].ip}"],
                     text=True,
                     timeout=3,
                 ).strip()
@@ -44,7 +44,7 @@ def resolve_target_url(target_url: str, host_header: str) -> tuple[str, str]:
 def run_traffic_test(target_url: str, interval: float, duration: int, host_header: str = "recreate.local"):
     resolved_url, effective_host = resolve_target_url(target_url, host_header)
     print("=" * 70)
-    print("GENERADOR DE TRÁFICO SINTÉTICO Y TELEMETRÍA DE DOWNTIME")
+    print("MAREA DULCE: MEDIDOR DE DOWNTIME Y TELEMETRÍA K8S RECREATE")
     print(f"URL Objetivo: {target_url} -> {resolved_url} (Host: {effective_host})")
     print(f"Intervalo: {interval}s ({1.0/interval:.1f} req/s)")
     print(f"Duración máxima: {duration if duration > 0 else 'Indefinida'} segundos")
@@ -77,24 +77,25 @@ def run_traffic_test(target_url: str, interval: float, duration: int, host_heade
                 req = urllib.request.Request(
                     resolved_url,
                     headers={
-                        "User-Agent": "K8s-Traffic-Generator/1.0",
+                        "User-Agent": "Marea-Traffic-Generator/1.0",
                         "Host": effective_host,
                     },
                 )
                 with urllib.request.urlopen(req, timeout=1.5) as resp:
                     status_code = resp.status
                     is_success = 200 <= status_code < 400
-                    # Si devuelve JSON, parseamos versión
-                    data = resp.read().decode("utf-8")
-                    if '"version"' in data:
-                        for part in data.split(","):
-                            if '"version"' in part:
-                                current_version = part.split(":")[1].replace('"', "").strip()
+                    raw_data = resp.read().decode("utf-8")
+                    try:
+                        data = json.loads(raw_data)
+                        if "version" in data:
+                            current_version = data["version"]
+                    except Exception:
+                        pass
             except urllib.error.HTTPError as e:
                 status_code = e.code
                 error_msg = f"HTTP {e.code}"
             except urllib.error.URLError as e:
-                status_code = 0  # Fallo de conexión o red
+                status_code = 0
                 error_msg = f"Conexión rechazada / timeout ({e.reason})"
             except Exception as e:
                 status_code = -1
@@ -106,7 +107,6 @@ def run_traffic_test(target_url: str, interval: float, duration: int, host_heade
             if is_success:
                 successful_requests += 1
                 if downtime_start is not None:
-                    # Fin del downtime
                     dt_duration = time.time() - downtime_start
                     downtime_periods.append(dt_duration)
                     print(f"\n[RESTABLECIMIENTO] Servicio recuperado a las {req_time}. "
@@ -117,9 +117,8 @@ def run_traffic_test(target_url: str, interval: float, duration: int, host_heade
             else:
                 failed_requests += 1
                 if downtime_start is None:
-                    # Inicio de indisponibilidad
                     downtime_start = time.time()
-                    print(f"\n[ALERTA DOWNTIME] Fallo de servicio detectado a las {req_time}: {error_msg}")
+                    print(f"\n[ALERTA DOWNTIME] Interrupción de servicio detectada a las {req_time}: {error_msg}")
                 print(f"[{req_time}] REQ #{total_requests:04d} -> FALLO: {error_msg}")
 
             time.sleep(interval)
@@ -160,4 +159,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run_traffic_test(target_url=args.url, interval=args.interval, duration=args.duration, host_header=args.host)
-

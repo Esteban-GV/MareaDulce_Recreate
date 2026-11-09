@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" width="100%" height="100%" fill="none" preserveAspectRatio="none">
+  <!-- Patrón de ondas suaves Marea Dulce en menta suave para fondos de sección -->
+  <path d="M0,32 C240,64 480,16 720,44 C960,72 1200,24 1440,48 L1440,120 L0,120 Z" fill="#E1F3ED" fill-opacity="0.5"/>
+  <path d="M0,64 C320,20 640,78 960,42 C1280,6 1380,50 1440,58 L1440,120 L0,120 Z" fill="#E1F3ED" fill-opacity="0.8"/>
+</svg>

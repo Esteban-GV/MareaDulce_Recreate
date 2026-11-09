@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Marea Dulce Design Tokens",
+  "version": "1.0.0",
+  "color": {
+    "primitive": {
+      "aguamarina": {
+        "300": { "value": "#A9E0D6", "type": "color" },
+        "500": { "value": "#56C7B6", "type": "color", "description": "Aguamarina principal de marca" },
+        "600": { "value": "#4BBBAA", "type": "color", "description": "Hover botón primario" },
+        "700": { "value": "#47B5A5", "type": "color", "description": "Pressed botón primario" }
+      },
+      "petroleo": {
+        "500": { "value": "#245B59", "type": "color", "description": "Verde petróleo para títulos, navegación y acentos" }
+      },
+      "menta": {
+        "100": { "value": "#F4F8F6", "type": "color", "description": "Fondo suave modo Admin" },
+        "500": { "value": "#E1F3ED", "type": "color", "description": "Menta suave para fondos y superficies" }
+      },
+      "crema": {
+        "100": { "value": "#FFF9F0", "type": "color", "description": "Blanco crema fondo principal de tienda" },
+        "200": { "value": "#F3EBDD", "type": "color", "description": "Bordes sutiles y líneas divisorias" },
+        "300": { "value": "#E6DCCB", "type": "color", "description": "Bordes fuertes y campos desactivados" }
+      },
+      "coral": {
+        "500": { "value": "#ED978C", "type": "color", "description": "Promociones y acentos cálidos" }
+      },
+      "vainilla": {
+        "500": { "value": "#F1D998", "type": "color", "description": "Elementos decorativos" }
+      },
+      "gris": {
+        "500": { "value": "#777A75", "type": "color", "description": "Gris cálido para texto >= 18px" },
+        "700": { "value": "#5F625E", "type": "color", "description": "Gris derivado texto pequeño accesible AA" }
+      },
+      "carbon": {
+        "500": { "value": "#303A3A", "type": "color", "description": "Carbón suave para textos principales y texto sobre aguamarina" }
+      },
+      "feedback": {
+        "exito": { "value": "#2E7D5B", "type": "color" },
+        "advertencia": { "value": "#7A5200", "type": "color" },
+        "error": { "value": "#B3402F", "type": "color" },
+        "error-bg": { "value": "#FBE4E0", "type": "color" }
+      },
+      "blanco": { "value": "#FFFFFF", "type": "color" }
+    },
+    "semantic": {
+      "tienda": {
+        "bg": {
+          "page": { "value": "{color.primitive.crema.100}" },
+          "card": { "value": "{color.primitive.blanco}" },
+          "subtle": { "value": "{color.primitive.menta.500}" },
+          "brand": { "value": "{color.primitive.petroleo.500}" }
+        },
+        "text": {
+          "primary": { "value": "{color.primitive.carbon.500}" },
+          "secondary": { "value": "{color.primitive.gris.700}" },
+          "brand": { "value": "{color.primitive.petroleo.500}" },
+          "onBrand": { "value": "{color.primitive.crema.100}" },
+          "onPrimaryAction": { "value": "{color.primitive.carbon.500}" }
+        },
+        "border": {
+          "subtle": { "value": "{color.primitive.crema.200}" },
+          "strong": { "value": "{color.primitive.crema.300}" }
+        },
+        "action": {
+          "primaryBg": { "value": "{color.primitive.aguamarina.500}" },
+          "primaryText": { "value": "{color.primitive.carbon.500}" },
+          "primaryHover": { "value": "{color.primitive.aguamarina.600}" },
+          "primaryPressed": { "value": "{color.primitive.aguamarina.700}" },
+          "secondaryBg": { "value": "{color.primitive.petroleo.500}" },
+          "secondaryText": { "value": "{color.primitive.crema.100}" }
+        },
+        "focus": {
+          "ring": { "value": "{color.primitive.petroleo.500}" }
+        },
+        "promo": {
+          "bg": { "value": "{color.primitive.coral.500}" },
+          "text": { "value": "{color.primitive.carbon.500}" }
+        }
+      },
+      "admin": {
+        "bg": {
+          "page": { "value": "{color.primitive.menta.100}" },
+          "card": { "value": "{color.primitive.blanco}" },
+          "sidebar": { "value": "{color.primitive.petroleo.500}" }
+        },
+        "text": {
+          "primary": { "value": "{color.primitive.carbon.500}" },
+          "secondary": { "value": "{color.primitive.gris.700}" },
+          "onSidebar": { "value": "{color.primitive.crema.100}" }
+        },
+        "border": {
+          "subtle": { "value": "{color.primitive.crema.200}" }
+        }
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "display": { "value": "Fraunces, Playfair Display, serif" },
+      "interface": { "value": "DM Sans, Inter, system-ui, sans-serif" },
+      "mono": { "value": "ui-monospace, SFMono-Regular, Menlo, monospace" }
+    },
+    "scale": {
+      "displayXL": { "fontSize": "64px", "lineHeight": "72px", "fontWeight": "600", "fontFamily": "{typography.fontFamily.display}" },
+      "displayL": { "fontSize": "48px", "lineHeight": "56px", "fontWeight": "600", "fontFamily": "{typography.fontFamily.display}" },
+      "h1": { "fontSize": "40px", "lineHeight": "48px", "fontWeight": "600", "fontFamily": "{typography.fontFamily.display}" },
+      "h2": { "fontSize": "32px", "lineHeight": "40px", "fontWeight": "500", "fontFamily": "{typography.fontFamily.display}" },
+      "h3": { "fontSize": "24px", "lineHeight": "32px", "fontWeight": "500", "fontFamily": "{typography.fontFamily.display}" },
+      "h4": { "fontSize": "20px", "lineHeight": "28px", "fontWeight": "600", "fontFamily": "{typography.fontFamily.interface}" },
+      "bodyL": { "fontSize": "18px", "lineHeight": "28px", "fontWeight": "400", "fontFamily": "{typography.fontFamily.interface}" },
+      "body": { "fontSize": "16px", "lineHeight": "24px", "fontWeight": "400", "fontFamily": "{typography.fontFamily.interface}" },
+      "bodyS": { "fontSize": "14px", "lineHeight": "20px", "fontWeight": "400", "fontFamily": "{typography.fontFamily.interface}" },
+      "caption": { "fontSize": "12px", "lineHeight": "16px", "fontWeight": "500", "fontFamily": "{typography.fontFamily.interface}" },
+      "overline": { "fontSize": "12px", "lineHeight": "16px", "fontWeight": "600", "letterSpacing": "0.08em", "textTransform": "uppercase", "fontFamily": "{typography.fontFamily.interface}" },
+      "priceL": { "fontSize": "28px", "lineHeight": "32px", "fontWeight": "700", "fontVariantNumeric": "tabular-nums", "fontFamily": "{typography.fontFamily.interface}" },
+      "button": { "fontSize": "16px", "lineHeight": "24px", "fontWeight": "600", "fontFamily": "{typography.fontFamily.interface}" }
+    }
+  },
+  "spacing": {
+    "1": { "value": "4px" },
+    "2": { "value": "8px" },
+    "3": { "value": "12px" },
+    "4": { "value": "16px" },
+    "5": { "value": "24px" },
+    "6": { "value": "32px" },
+    "7": { "value": "48px" },
+    "8": { "value": "64px" },
+    "9": { "value": "96px" },
+    "10": { "value": "128px" }
+  },
+  "borderRadius": {
+    "sm": { "value": "8px" },
+    "md": { "value": "12px" },
+    "lg": { "value": "20px" },
+    "xl": { "value": "28px" },
+    "pill": { "value": "999px" }
+  },
+  "shadow": {
+    "sm": { "value": "0 1px 2px rgba(36, 91, 89, 0.06)" },
+    "md": { "value": "0 4px 12px rgba(36, 91, 89, 0.08)" },
+    "lg": { "value": "0 12px 32px rgba(36, 91, 89, 0.10)" }
+  }
+}

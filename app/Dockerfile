@@ -1,11 +1,10 @@
 # ==============================================================================
-# Dockerfile: Microservicio Python para Demostración de Recreate y Observabilidad
+# Dockerfile: Marea Dulce — Plataforma Cloud-Native (Recreate Deployment)
 # ==============================================================================
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Prevenir escritura de archivos .pyc y forzar salida stdout sin buffer
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000
@@ -14,10 +13,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código fuente
+# Copiar código fuente y estáticos del Frontend SPA
 COPY src/ /app/src/
+COPY static/ /app/static/
 
-# Crear punto de montaje para el volumen persistente (PVC)
+# Crear punto de montaje para el volumen persistente (PVC SQLite)
 RUN mkdir -p /data && chmod 777 /data
 
 EXPOSE 8000

@@ -1,24 +1,23 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: recreate-app-network-policy
+  name: marea-dulce-network-policy
   namespace: recreate-lab
   labels:
-    app.kubernetes.io/name: recreate-app
+    app.kubernetes.io/part-of: marea-dulce
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: recreate-app
+      app.kubernetes.io/part-of: marea-dulce
   policyTypes:
     - Ingress
     - Egress
   ingress:
-    # 1. Tráfico HTTP entrante exclusivamente desde el controlador NGINX Ingress
+    # 1. Tráfico HTTP desde Ingress NGINX al microservicio unificado
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
-        - podSelector: {}
       ports:
         - protocol: TCP
           port: 8000
@@ -31,7 +30,7 @@ spec:
         - protocol: TCP
           port: 8000
   egress:
-    # Permitir resolución DNS del clúster
+    # Resolución DNS del clúster (CoreDNS en kube-system)
     - to:
         - namespaceSelector: {}
       ports:
@@ -39,4 +38,3 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-

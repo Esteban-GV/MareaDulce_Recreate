@@ -1,35 +1,38 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: recreate-app-alert-rules
+  name: marea-app-alert-rules
   namespace: recreate-lab
   labels:
-    app.kubernetes.io/name: recreate-app
+    app.kubernetes.io/name: marea-app
+    app.kubernetes.io/part-of: marea-dulce
     release: prometheus-stack
 spec:
   groups:
-    - name: recreate.deployment.rules
+    - name: marea.recreate.rules
       interval: 5s
       rules:
         - alert: RecreateDeploymentZeroReplicasWindow
-          expr: kube_deployment_status_replicas_available{namespace="recreate-lab", deployment="recreate-app-deployment"} == 0
+          expr: kube_deployment_status_replicas_available{namespace="recreate-lab", deployment="marea-app-deployment"} == 0
           for: 0m
           labels:
             severity: warning
             strategy: recreate
+            system: marea-dulce
           annotations:
-            summary: "Ventana de inactividad activa en despliegue Recreate"
-            description: "El Deployment recreate-app-deployment tiene 0 replicas disponibles en recreate-lab debido a un ciclo de transicion Recreate o fallo de pods."
+            summary: "Ventana de inactividad activa en despliegue Recreate (Marea Dulce)"
+            description: "El Deployment marea-app-deployment tiene 0 replicas disponibles en el namespace recreate-lab debido a la transicion Recreate v1->v2 o terminacion de pods."
 
         - alert: HighHttp5xxErrorRate
-          expr: sum(rate(http_requests_total{namespace="recreate-lab", status_code=~"5.."}[1m])) > 0.2
+          expr: sum(rate(http_requests_total{namespace="recreate-lab", status=~"5.."}[1m])) > 0.2
           for: 10s
           labels:
             severity: critical
             component: backend
+            system: marea-dulce
           annotations:
-            summary: "Tasa elevada de errores HTTP 5xx en recreate-app"
-            description: "El microservicio recreate-app registra mas de 0.2 errores HTTP 5xx por segundo de forma sostenida."
+            summary: "Tasa elevada de errores HTTP 5xx en Marea Dulce"
+            description: "La aplicacion marea-app registra mas de 0.2 errores HTTP 5xx por segundo de forma sostenida."
 
         - alert: HighRequestLatencyP95
           expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace="recreate-lab"}[1m])) by (le)) > 1.0
@@ -37,26 +40,29 @@ spec:
           labels:
             severity: warning
             component: backend
+            system: marea-dulce
           annotations:
-            summary: "Degradacion de latencia P95 en recreate-app (> 1s)"
+            summary: "Degradacion de latencia P95 en Marea Dulce (> 1s)"
             description: "El percentil 95 de tiempo de respuesta supero el umbral de 1.0 segundo."
 
         - alert: HighPodCpuUsageAbove80Percent
-          expr: (sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="recreate-lab", pod=~"recreate-app-deployment-.*"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{namespace="recreate-lab", container="web-app", resource="cpu"})) * 100 > 80
+          expr: (sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="recreate-lab", pod=~"marea-app-deployment-.*"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{namespace="recreate-lab", container="app", resource="cpu"})) * 100 > 80
           for: 15s
           labels:
             severity: warning
             component: compute
+            system: marea-dulce
           annotations:
-            summary: "Uso de CPU por encima del 80% en pod de recreate-app"
-            description: "El contenedor web-app supera el 80% de su limite de CPU asignado (300m)."
+            summary: "Uso de CPU por encima del 80% en pod de Marea Dulce"
+            description: "El contenedor app supera el 80% de su limite de CPU asignado (500m)."
 
         - alert: PersistentVolumeStorageErrors
-          expr: sum(rate(app_pvc_storage_operations_total{namespace="recreate-lab", status="error"}[1m])) > 0
+          expr: sum(rate(marea_db_storage_errors_total{namespace="recreate-lab"}[1m])) > 0
           for: 5s
           labels:
             severity: critical
             component: storage
+            system: marea-dulce
           annotations:
-            summary: "Errores de lectura/escritura en el volumen persistente PVC"
-            description: "Se detectaron fallos de E/S al operar sobre /data/recreate_platform.db en el volumen recreate-app-pvc."
+            summary: "Errores de lectura/escritura en el volumen persistente PVC (SQLite)"
+            description: "Se detectaron fallos de E/S o corrupcion al operar sobre /data/marea_dulce.db en el volumen recreate-app-pvc."

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# CoreLedger Cloud-Native Platform — benchmark.sh
+# Marea Dulce Cloud-Native Platform — benchmark.sh
 # Propósito: Ejecutar pruebas sintéticas de rendimiento y fiabilidad HTTP
-#            contra los endpoints críticos del microservicio CoreLedger.
+#            contra los endpoints críticos del microservicio Marea Dulce.
 # Uso:       bash scripts/benchmark.sh [ITERACIONES]
 # ==============================================================================
 set -euo pipefail
@@ -10,7 +10,7 @@ set -euo pipefail
 ITERATIONS="${1:-25}"
 
 echo "=================================================================="
-echo " [CoreLedger] Ejecutando Benchmark HTTP Sintético (${ITERATIONS} reqs/endpoint)"
+echo " [Marea Dulce] Ejecutando Benchmark HTTP Sintético (${ITERATIONS} reqs/endpoint)"
 echo "=================================================================="
 
 run_bench() {
@@ -18,7 +18,7 @@ run_bench() {
   local path="$2"
   echo ""
   echo "${label} (${path})..."
-  kubectl exec -n recreate-lab deploy/recreate-app-deployment -- python3 -c "
+  kubectl exec -n recreate-lab deploy/marea-app-deployment -- python3 -c "
 import urllib.request, time
 ok = 0; fail = 0
 start = time.time()
@@ -38,11 +38,12 @@ if fail > 0:
 "
 }
 
-run_bench "[1/3] Benchmark Sondas de Salud" "/healthz"
-run_bench "[2/3] Benchmark Diagnóstico & Contador PVC" "/api/info"
-run_bench "[3/3] Benchmark Libro Contable SQLite en PVC" "/api/transactions?limit=5"
+run_bench "[1/4] Benchmark Sondas de Salud" "/healthz"
+run_bench "[2/4] Benchmark Catálogo de Productos" "/api/v1/products"
+run_bench "[3/4] Benchmark Categorías de Repostería" "/api/v1/categories"
+run_bench "[4/4] Benchmark Telemetría y Métricas" "/metrics"
 
 echo ""
 echo "=================================================================="
-echo " [CoreLedger] Benchmark Completado Exitosamente (0% Error Rate)."
+echo " [Marea Dulce] Benchmark Completado Exitosamente (0% Error Rate)."
 echo "=================================================================="

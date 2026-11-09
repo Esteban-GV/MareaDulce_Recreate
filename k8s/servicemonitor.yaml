@@ -1,19 +1,18 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: recreate-app-servicemonitor
+  name: marea-app-servicemonitor
   namespace: recreate-lab
   labels:
-    app.kubernetes.io/name: recreate-app
     release: prometheus-stack
+    app.kubernetes.io/name: marea-app
+    app.kubernetes.io/part-of: marea-dulce
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: recreate-app
+      app.kubernetes.io/name: marea-app
   endpoints:
     - port: http
       path: /metrics
       interval: 5s
       scrapeTimeout: 3s
-      honorLabels: true
-

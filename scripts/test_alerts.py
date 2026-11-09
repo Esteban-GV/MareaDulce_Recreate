@@ -24,7 +24,7 @@ def resolve_base_url(target_url: str, host_header: str) -> tuple[str, str]:
             ingress_ip = "192.168.49.2"
             try:
                 out = subprocess.check_output(
-                    ["kubectl", "get", "ingress", "recreate-app-ingress", "-n", "recreate-lab", "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}"],
+                    ["kubectl", "get", "ingress", "-n", "recreate-lab", "-o", "jsonpath={.items[0].status.loadBalancer.ingress[0].ip}"],
                     text=True,
                     timeout=3,
                 ).strip()

@@ -1,12 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: recreate-app-ingress
+  name: marea-app-ingress
   namespace: recreate-lab
   labels:
-    app.kubernetes.io/name: recreate-app
+    app.kubernetes.io/name: marea-app
+    app.kubernetes.io/part-of: marea-dulce
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 spec:
   ingressClassName: nginx
   rules:
@@ -17,7 +20,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: recreate-app-service
+                name: marea-app-service
                 port:
                   number: 80
-
