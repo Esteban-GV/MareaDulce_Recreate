@@ -112,10 +112,17 @@ export const HomeView: React.FC = () => {
             <Link
               key={cat.id}
               to={`/catalogo?category=${cat.slug}`}
-              className="group p-4 bg-white rounded-lg border border-crema-200 hover:border-aguamarina-500 text-center flex flex-col items-center justify-center gap-2 shadow-sm hover:shadow transition-all"
+              className="group p-4 bg-white rounded-lg border border-crema-200 hover:border-aguamarina-500 text-center flex flex-col items-center justify-center gap-2.5 shadow-sm hover:shadow transition-all"
             >
-              <div className="w-12 h-12 rounded-full bg-menta-100 group-hover:bg-aguamarina-300 flex items-center justify-center transition-colors">
-                <img src="/assets/isotipo.svg" alt={cat.name} className="w-6 h-6 object-contain" />
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-crema-200 group-hover:border-aguamarina-500 shadow-sm flex items-center justify-center transition-all bg-menta-100">
+                <img
+                  src={`/assets/categories/${cat.slug}.webp`}
+                  alt={cat.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/assets/isotipo.svg';
+                  }}
+                />
               </div>
               <span className="font-serif text-sm font-semibold text-carbon-500 group-hover:text-petroleo-500 transition-colors">
                 {cat.name}
