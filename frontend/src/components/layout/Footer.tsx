@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSystem } from '../../context/SystemContext';
 import { Heart, Sparkles, ShieldCheck } from 'lucide-react';
 
 export const Footer: React.FC = () => {
+  const { version } = useSystem();
   return (
     <footer className="relative bg-[#F9F3E9] text-carbon-500 border-t border-crema-200 mt-20">
       {/* Patrón de onda decorativa en la parte superior */}
@@ -56,9 +58,18 @@ export const Footer: React.FC = () => {
 
           {/* Columna 4: Transparencia Técnica Cloud-Native */}
           <div className="bg-menta-100 p-4 rounded-lg border border-menta-500/40">
-            <div className="flex items-center gap-2 text-petroleo-500 font-semibold text-sm mb-2">
-              <ShieldCheck className="w-4 h-4 text-aguamarina-700" />
-              <span>Plataforma Cloud-Native</span>
+            <div className="flex items-center justify-between text-petroleo-500 font-semibold text-sm mb-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-aguamarina-700" />
+                <span>Plataforma Cloud-Native</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+                version.startsWith('2')
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-white text-petroleo-500 border-crema-300'
+              }`}>
+                v{version}
+              </span>
             </div>
             <p className="text-xs text-gris-700 leading-relaxed mb-3">
               Desplegada en Kubernetes con estrategia <strong>Recreate</strong>, persistencia SQLite en PVC y alta disponibilidad de catálogo.

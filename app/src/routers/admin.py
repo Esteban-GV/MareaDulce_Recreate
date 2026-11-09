@@ -52,6 +52,16 @@ def get_kpis(_=Depends(require_admin)):
     finally:
         conn.close()
 
+@router.get("/dashboard", summary="Resumen del Dashboard Administrativo")
+def get_dashboard(admin=Depends(require_admin)):
+    """Retorna un consolidado administrativo con KPIs y métricas de órdenes."""
+    kpis = get_kpis(admin)
+    return {
+        "status": "operational",
+        "orders": kpis.pending_orders_count + kpis.month_orders_count,
+        "kpis": kpis.model_dump()
+    }
+
 @router.get("/inventory", summary="Inventario administrativo consolidado")
 def get_inventory(_=Depends(require_admin)):
     """Retorna el listado completo de inventario con alertas de stock."""

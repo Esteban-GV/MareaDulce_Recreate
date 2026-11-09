@@ -250,7 +250,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "sum by (pod) (kube_pod_container_status_restarts_total{namespace=\"recreate-lab\", container=\"web-app\"})",
+          "expr": "sum by (pod) (kube_pod_container_status_restarts_total{namespace=\"recreate-lab\", container=~\"app|web-app\"})",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }
@@ -300,8 +300,8 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum by (version, status_code) (rate(http_requests_total{namespace=\"recreate-lab\"}[1m]))",
-          "legendFormat": "{{version}} - HTTP {{status_code}}",
+          "expr": "sum by (version, status) (rate(http_requests_total{namespace=\"recreate-lab\"}[1m]))",
+          "legendFormat": "{{version}} - HTTP {{status}}",
           "refId": "A"
         }
       ]
@@ -355,7 +355,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(rate(http_requests_total{namespace=\"recreate-lab\", status_code=~\"5..\"}[1m])) or vector(0)",
+          "expr": "sum(rate(http_requests_total{namespace=\"recreate-lab\", status=~\"5..\"}[1m])) or vector(0)",
           "legendFormat": "Tasa de Errores HTTP 5xx (req/s)",
           "refId": "B"
         }
@@ -511,11 +511,11 @@
           "sort": "desc"
         }
       },
-      "title": "USE - Utilización de CPU por Pod (% sobre Límite de 300m)",
+      "title": "USE - Utilización de CPU por Pod (% sobre Límite de 500m)",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "(sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"recreate-lab\", pod=~\"marea-app-deployment-.*\"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{namespace=\"recreate-lab\", container=\"web-app\", resource=\"cpu\"})) * 100",
+          "expr": "(sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"recreate-lab\", pod=~\"marea-app-deployment-.*\"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{namespace=\"recreate-lab\", resource=\"cpu\"})) * 100",
           "legendFormat": "CPU % - {{pod}}",
           "refId": "A"
         }

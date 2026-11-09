@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status, Depends, Header, Query
 from src.domain.schemas import OrderCreate, OrderOut, OrderStatusUpdate
 from src.domain.constants import OrderStatus
+from src.core.config import settings
 from src.core.security import security_scheme, decode_access_token, require_admin
 from src.core.metrics import MAREA_ORDERS_TOTAL, MAREA_REVENUE_COP_TOTAL
 from src.repositories.order_repo import OrderRepository
@@ -39,7 +40,8 @@ def create_order(
             user_id=user_id
         )
         # Registrar métricas en Prometheus
-        MAREA_ORDERS_TOTAL.labels(status="PENDIENTE").inc()
+        schema_ver = "v2" if settings.VERSION.startswith("2") else "v1"
+        MAREA_ORDERS_TOTAL.labels(status="PENDIENTE", schema_version=schema_ver).inc()
         MAREA_REVENUE_COP_TOTAL.inc(order["total_cop"])
         
         return OrderOut(**order)
@@ -88,7 +90,8 @@ def update_order_status(order_id: int, status_in: OrderStatusUpdate, _=Depends(r
     """Aplica un cambio de estado en el flujo del pedido validando las transiciones de negocio permitidas."""
     try:
         updated = OrderRepository.update_status(order_id, status_in.new_status)
-        MAREA_ORDERS_TOTAL.labels(status=status_in.new_status.value).inc()
+        schema_ver = "v2" if settings.VERSION.startswith("2") else "v1"
+        MAREA_ORDERS_TOTAL.labels(status=status_in.new_status.value, schema_version=schema_ver).inc()
         return OrderOut(**updated)
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))

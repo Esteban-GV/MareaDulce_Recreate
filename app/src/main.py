@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
 from src.core.config import settings
-from src.core.metrics import HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION_SECONDS
+from src.core.metrics import HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION_SECONDS, APP_VERSION_INFO
 from src.infrastructure.migrations import run_migrations
 from src.infrastructure.seed import seed_database
 from src.routers import system, auth, categories, products, orders, custom_orders, admin
@@ -28,6 +28,12 @@ async def lifespan(app: FastAPI):
         run_migrations()
         # 2. Cargar datos iniciales del catálogo oficial de pastelería
         seed_database()
+        schema_ver = "v2" if settings.VERSION.startswith("2") else "v1"
+        APP_VERSION_INFO.labels(
+            version=settings.VERSION,
+            schema_version=schema_ver,
+            strategy="Recreate"
+        ).set(1)
         logger.info("Persistencia y catálogo oficial inicializados correctamente en SQLite WAL.")
     except Exception as e:
         logger.error("Fallo crítico en inicialización: %s", e, exc_info=True)
@@ -67,14 +73,32 @@ async def prometheus_metrics_middleware(request: Request, call_next):
         status_code = str(response.status_code)
         
         if endpoint != "/metrics":
-            HTTP_REQUESTS_TOTAL.labels(method=method, endpoint=endpoint, status=status_code).inc()
-            HTTP_REQUEST_DURATION_SECONDS.labels(method=method, endpoint=endpoint).observe(duration)
+            HTTP_REQUESTS_TOTAL.labels(
+                method=method,
+                endpoint=endpoint,
+                status=status_code,
+                version=settings.VERSION
+            ).inc()
+            HTTP_REQUEST_DURATION_SECONDS.labels(
+                method=method,
+                endpoint=endpoint,
+                version=settings.VERSION
+            ).observe(duration)
             
         return response
     except Exception as e:
         duration = time.time() - start_time
-        HTTP_REQUESTS_TOTAL.labels(method=method, endpoint=endpoint, status="500").inc()
-        HTTP_REQUEST_DURATION_SECONDS.labels(method=method, endpoint=endpoint).observe(duration)
+        HTTP_REQUESTS_TOTAL.labels(
+            method=method,
+            endpoint=endpoint,
+            status="500",
+            version=settings.VERSION
+        ).inc()
+        HTTP_REQUEST_DURATION_SECONDS.labels(
+            method=method,
+            endpoint=endpoint,
+            version=settings.VERSION
+        ).observe(duration)
         raise e
 
 # Montaje de Enrutadores de la API

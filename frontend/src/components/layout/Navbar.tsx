@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useSystem } from '../../context/SystemContext';
 import { ShoppingBag, User, Menu, X, Shield, LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { totalItems, openDrawer } = useCart();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { version } = useSystem();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -15,7 +17,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logotipo Oficial */}
+          {/* Logotipo Oficial con Badge de Versión */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-petroleo-500 rounded-lg p-1">
             <img
               src="/assets/isotipo.svg"
@@ -23,11 +25,23 @@ export const Navbar: React.FC = () => {
               className="w-10 h-10 object-contain transition-transform group-hover:scale-105"
             />
             <div className="flex flex-col">
-              <span className="font-serif text-2xl font-semibold text-petroleo-500 tracking-tight leading-none">
-                Marea Dulce
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-2xl font-semibold text-petroleo-500 tracking-tight leading-none">
+                  Marea Dulce
+                </span>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold tracking-wide border shadow-sm ${
+                    version.startsWith('2')
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                      : 'bg-aguamarina-500/20 text-petroleo-500 border-aguamarina-500/40'
+                  }`}
+                  title={`Versión activa en Kubernetes: v${version}`}
+                >
+                  v{version}
+                </span>
+              </div>
               <span className="font-sans text-[10px] font-medium text-gris-700 tracking-wider uppercase mt-1">
-                Pastelería Artesanal
+                Pastelería Artesanal · K8s Recreate
               </span>
             </div>
           </Link>

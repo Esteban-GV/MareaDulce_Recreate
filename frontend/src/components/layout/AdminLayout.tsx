@@ -6,7 +6,7 @@ import { LayoutDashboard, ShoppingBag, Layers, Warehouse, Store, LogOut, Wifi, W
 
 export const AdminLayout: React.FC = () => {
   const { user, isAdmin, logout } = useAuth();
-  const { isOnline, isReconnecting } = useSystem();
+  const { isOnline, isReconnecting, version } = useSystem();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -44,7 +44,14 @@ export const AdminLayout: React.FC = () => {
           <div className="p-6 border-b border-petroleo-600 flex items-center gap-3">
             <img src="/assets/isotipo.svg" alt="Marea Dulce" className="w-8 h-8" />
             <div>
-              <span className="font-serif text-xl font-bold tracking-tight text-white">Marea Dulce</span>
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-xl font-bold tracking-tight text-white">Marea Dulce</span>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                  version.startsWith('2') ? 'bg-emerald-500 text-white' : 'bg-aguamarina-500 text-petroleo-500'
+                }`}>
+                  v{version}
+                </span>
+              </div>
               <p className="text-[10px] text-aguamarina-300 font-medium uppercase tracking-wider">Panel Administrativo</p>
             </div>
           </div>

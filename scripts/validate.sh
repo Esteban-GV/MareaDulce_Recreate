@@ -132,6 +132,8 @@ ORDER_RESP=$(curl -s -X POST "${BASE_URL}/api/v1/orders" \
         "customer_name": "Validador E2E",
         "customer_email": "qa@mareadulce.com",
         "customer_phone": "+57 300 000 0000",
+        "delivery_type": "domicilio",
+        "delivery_date": "2026-11-10",
         "delivery_address": "Carrera 43A # 1-50, Medellín",
         "notes": "Prueba automatizada de integridad",
         "items": [{"product_id": 1, "quantity": 1}]
