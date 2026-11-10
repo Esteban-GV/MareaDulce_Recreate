@@ -175,7 +175,8 @@ data:
     filebeat.inputs:
       - type: container
         paths:
-          - /var/log/containers/*recreate-app*.log
+          - /var/log/containers/*marea-app*.log
+          - /var/log/containers/*recreate*.log
           - /var/log/containers/*ingress-nginx*.log
         processors:
           - add_kubernetes_metadata:
@@ -256,3 +257,48 @@ spec:
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kibana-setup-dataview
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: kibana-setup
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kibana-setup
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: setup-dataview
+          image: curlimages/curl:8.5.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[Kibana Setup] Esperando a que el servicio Kibana responda..."
+              until curl -s "http://kibana.monitoring.svc.cluster.local:5601/api/status" | grep -q '"overall"'; do
+                sleep 3
+              done
+              echo "[Kibana Setup] Kibana online. Verificando/Creando Data View para filebeat-*..."
+              # Crear Data View para filebeat-*
+              curl -s -X POST "http://kibana.monitoring.svc.cluster.local:5601/api/data_views/data_view" \
+                -H "kbn-xsrf: true" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "data_view": {
+                    "title": "filebeat-*",
+                    "name": "Logs Marea Dulce (filebeat-*)",
+                    "timeFieldName": "@timestamp"
+                  }
+                }'
+              # Establecer como Data View por defecto
+              curl -s -X POST "http://kibana.monitoring.svc.cluster.local:5601/api/data_views/default" \
+                -H "kbn-xsrf: true" \
+                -H "Content-Type: application/json" \
+                -d '{"value": "filebeat-*"}'
+              echo "[Kibana Setup] Data View predeterminado configurado exitosamente."

@@ -694,6 +694,120 @@
           "refId": "C"
         }
       ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.2
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ventana de Interrupción Recreate (Downtime)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "text": "NORMAL (1 Pod)"
+                      },
+                      "1": {
+                        "color": "red",
+                        "text": "CORTE ACTIVO (0 Pods)"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 13,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "title": "Auditoría de Eventos y Trazas: Errores HTTP, Operaciones SQLite y Ciclo Recreate",
+      "description": "Trazabilidad en tiempo real de errores HTTP 4xx/5xx, transacciones de base de datos SQLite y cortes durante la transición Recreate.",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "sum by (endpoint, status, version) (rate(http_requests_total{namespace=\"recreate-lab\", status=~\"[45]..\"}[1m]))",
+          "legendFormat": "Errores HTTP {{status}} - {{endpoint}} (v{{version}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (operation, status) (rate(marea_db_operations_total{namespace=\"recreate-lab\"}[1m]))",
+          "legendFormat": "Operación SQLite: {{operation}} ({{status}})",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(marea_db_storage_errors_total{namespace=\"recreate-lab\"}[1m])",
+          "legendFormat": "Errores de Almacenamiento PVC (SQLite)",
+          "refId": "C"
+        },
+        {
+          "expr": "1 - clamp_max(kube_deployment_status_replicas_available{namespace=\"recreate-lab\", deployment=\"marea-app-deployment\"}, 1)",
+          "legendFormat": "Ventana de Interrupción Recreate (Downtime)",
+          "refId": "D"
+        }
+      ]
     }
   ],
   "refresh": "5s",
@@ -714,6 +828,6 @@
   "timezone": "browser",
   "title": "Marea Dulce - Estrategia Recreate & Observabilidad RED/USE",
   "uid": "marea-dulce-recreate",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

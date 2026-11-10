@@ -3,10 +3,17 @@
 # ==============================================================================
 
 global:
+  clusterId: minikube-recreate-lab
   prometheus:
-    # Usar la instancia existente de Prometheus en kube-prometheus-stack
+    # Integrar con el Prometheus existente de kube-prometheus-stack
     enabled: false
     fqdn: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
+
+prometheus:
+  server:
+    global:
+      external_labels:
+        cluster_id: minikube-recreate-lab
 
 kubecostModel:
   resources:
@@ -26,3 +33,12 @@ kubecostFrontend:
       cpu: 200m
       memory: 256Mi
 
+# Deshabilitar módulos de red/cloud no necesarios en entorno local para evitar advertencias en la UI
+networkCosts:
+  enabled: false
+clusterController:
+  enabled: false
+
+kubecostProductConfigs:
+  clusterName: minikube-recreate-lab
+  currencyCode: USD
