@@ -194,6 +194,8 @@ bash scripts/validate.sh
 - **Prometheus UI:** `http://localhost:9090`
 - **Alertmanager:** `http://localhost:9093`
 - **Kibana (Logs ELK):** `http://localhost:5601`
+- **Kubecost (Dashboard FinOps):** `http://localhost:9091`
+- **Presentación Oficial (HTML/PDF):** `Presentacion/presentacion.html`
 
 ### Demostración del Ciclo Recreate con Medición de Downtime
 

@@ -123,6 +123,18 @@ if ! helm status prometheus-stack -n monitoring >/dev/null 2>&1; then
     --wait --timeout 5m
 fi
 
+# Desplegar Kubecost (FinOps Cost Analyzer)
+if ! helm status kubecost -n kubecost >/dev/null 2>&1; then
+  echo "  -> Instalando Kubecost (Gestor FinOps & Analizador de Costos)..."
+  helm repo add cost-analyzer https://kubecost.github.io/cost-analyzer/ >/dev/null 2>&1 || true
+  helm repo update >/dev/null 2>&1 || true
+  helm upgrade --install kubecost cost-analyzer/cost-analyzer \
+    --version 2.8.7 \
+    --namespace kubecost --create-namespace \
+    -f "${REPO_ROOT}/monitoring/kubecost/values-kubecost.yaml" \
+    --timeout 3m || echo "  [AVISO] Kubecost continuará su inicialización en segundo plano."
+fi
+
 # Aprovisionar Tablero de Grafana Marea Dulce
 kubectl create configmap marea-app-grafana-dashboard \
   -n monitoring \
@@ -147,14 +159,27 @@ kubectl apply -f "${REPO_ROOT}/k8s/prometheusrule.yaml"
 echo "  -> Esperando disponibilidad del pod marea-app-deployment..."
 kubectl rollout status deployment/marea-app-deployment -n recreate-lab --timeout=120s
 
+# Activar túneles port-forward para disponibilidad inmediata
+"${REPO_ROOT}/scripts/forward_services.sh" start
+
 echo ""
 echo "=============================================================================="
-echo " [Marea Dulce] Plataforma iniciada y 100% operativa."
+echo " [Marea Dulce] Plataforma iniciada y 100% operativa"
 echo "=============================================================================="
-echo " Siguiente paso recomendado:"
-echo "   Para acceder a la tienda web y dashboards, abra los túneles locales con:"
-echo "   -> ./scripts/forward_services.sh start"
+echo " Enlaces directos a la aplicación y dashboards locales:"
 echo ""
-echo " Para verificar el estado general en cualquier momento:"
+echo " 1. Tienda Web y API (Marea Dulce):        http://localhost:8000"
+echo " 2. Grafana (Estrategia Recreate & RED):   http://localhost:3000/d/marea-dulce-recreate"
+echo "    - Credenciales Grafana:                admin / admin123"
+echo " 3. Prometheus (Métricas & Alertas):       http://localhost:9090"
+echo "    - Reglas de Alerta:                    http://localhost:9090/alerts"
+echo " 4. Alertmanager (Alarmas Críticas):       http://localhost:9093"
+echo " 5. Kibana (Logs de Pods y SQLite ELK):    http://localhost:5601/app/discover"
+echo " 6. Kubecost (Gestión de Costos FinOps):   http://localhost:9091"
+echo " 7. Presentación del Proyecto (HTML/PDF):  file://${REPO_ROOT}/Presentacion/presentacion.html"
+echo "=============================================================================="
+echo " Para verificar el estado general de los pods en cualquier momento:"
 echo "   -> ./scripts/status.sh"
+echo " Para detener todos los servicios y túneles:"
+echo "   -> ./scripts/stop.sh"
 echo "=============================================================================="

@@ -20,6 +20,7 @@ start_forwards() {
     pkill -f "kubectl port-forward.*prometheus-stack-kube-prom-prometheus" 2>/dev/null || true
     pkill -f "kubectl port-forward.*prometheus-stack-kube-prom-alertmanager" 2>/dev/null || true
     pkill -f "kubectl port-forward.*svc/kibana" 2>/dev/null || true
+    pkill -f "kubectl port-forward.*kubecost" 2>/dev/null || true
     sleep 1
 
     # Aplicación unificada Marea Dulce (Storefront SPA + API FastAPI) en puerto 8000
@@ -31,6 +32,13 @@ start_forwards() {
     setsid bash -c "while true; do kubectl port-forward --address 0.0.0.0 svc/prometheus-stack-kube-prom-alertmanager -n monitoring 9093:9093 </dev/null >>/tmp/pf-alertmanager.log 2>&1 || true; sleep 1; done" </dev/null >/dev/null 2>&1 &
     if kubectl get svc kibana -n monitoring >/dev/null 2>&1; then
         setsid bash -c "while true; do kubectl port-forward --address 0.0.0.0 svc/kibana -n monitoring 5601:5601 </dev/null >>/tmp/pf-kibana.log 2>&1 || true; sleep 1; done" </dev/null >/dev/null 2>&1 &
+    fi
+
+    # Kubecost Cost Analyzer (UI FinOps en puerto 9091 para no colisionar con Prometheus :9090)
+    if kubectl get svc kubecost-cost-analyzer -n kubecost >/dev/null 2>&1; then
+        setsid bash -c "while true; do kubectl port-forward --address 0.0.0.0 svc/kubecost-cost-analyzer -n kubecost 9091:9090 </dev/null >>/tmp/pf-kubecost.log 2>&1 || true; sleep 1; done" </dev/null >/dev/null 2>&1 &
+    elif kubectl get svc kubecost-cost-analyzer -n monitoring >/dev/null 2>&1; then
+        setsid bash -c "while true; do kubectl port-forward --address 0.0.0.0 svc/kubecost-cost-analyzer -n monitoring 9091:9090 </dev/null >>/tmp/pf-kubecost.log 2>&1 || true; sleep 1; done" </dev/null >/dev/null 2>&1 &
     fi
     sleep 2
 
@@ -65,6 +73,8 @@ show_status() {
     echo " 4. Alertmanager (Gestión de Alarmas):        http://localhost:9093"
     echo ""
     echo " 5. Kibana - Pila ELK (Logs de Pods y DB):    http://localhost:5601/app/discover"
+    echo ""
+    echo " 6. Kubecost (Gestión de Costos FinOps):      http://localhost:9091"
     echo "=============================================================================="
     echo " Procesos port-forward en ejecución:"
     pgrep -af "kubectl port-forward" || echo "  (Ningún túnel activo. Ejecute: ./scripts/forward_services.sh start)"
